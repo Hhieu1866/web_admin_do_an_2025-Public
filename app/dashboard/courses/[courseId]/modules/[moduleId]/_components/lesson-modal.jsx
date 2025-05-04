@@ -22,11 +22,13 @@ import { ContentTypeForm } from "./content-type-form";
 import { CourseActions } from "../../../_components/course-action";
 import { LessonActions } from "./lesson-action";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export const LessonModal = ({ open, setOpen, courseId, lesson, moduleId }) => {
   const [contentType, setContentType] = useState(
     lesson?.content_type || "video",
   );
+  const router = useRouter();
 
   // Cập nhật state khi props lesson thay đổi
   useEffect(() => {
@@ -42,11 +44,16 @@ export const LessonModal = ({ open, setOpen, courseId, lesson, moduleId }) => {
 
   function postDelete() {
     setOpen(false);
-    onclose();
+    router.refresh();
   }
 
+  const handleClose = () => {
+    setOpen(false);
+    router.refresh();
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleClose}>
       {/* <DialogTrigger>Open</DialogTrigger> */}
       <DialogContent
         className="sm:max-w-[1200px] w-[96%] overflow-y-auto max-h-[90vh]"

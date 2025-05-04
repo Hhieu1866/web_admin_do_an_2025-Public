@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { Loader2, PlusCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { LessonList } from "./lesson-list";
 import { LessonModal } from "./lesson-modal";
@@ -26,8 +26,8 @@ import { createLesson, reOrderLesson } from "@/app/actions/lesson";
 const formSchema = z.object({
   title: z.string().min(1),
 });
-  
-export const LessonForm = ({ initialData, moduleId,courseId }) => {
+
+export const LessonForm = ({ initialData, moduleId, courseId }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [lessons, setLessons] = useState(initialData);
   const router = useRouter();
@@ -35,6 +35,10 @@ export const LessonForm = ({ initialData, moduleId,courseId }) => {
   const [isUpdating, setIsUpdating] = useState(false);
 
   const [lessonToEdit, setLessonToEdit] = useState(null);
+
+  useEffect(() => {
+    setLessons(initialData);
+  }, [initialData]);
 
   const toggleCreating = () => setIsCreating((current) => !current);
   const toggleEditing = () => setIsEditing((current) => !current);
@@ -49,33 +53,35 @@ export const LessonForm = ({ initialData, moduleId,courseId }) => {
   const { isSubmitting, isValid } = form.formState;
 
   const onSubmit = async (values) => {
-      try {
-  
-        const formData = new FormData();
-        formData.append("title", values?.title);
-        formData.append("slug", getSlug(values?.title));
-        formData.append("moduleId",moduleId);
-        formData.append("order", lessons.length)
-  
-        const lesson = await createLesson(formData); 
-  
-        setLessons((lessons) => [
-          ...lessons,
-          {
-            id: lesson?._id.toString(),
-            title: values.title,
-          },
-        ]);
-        toast.success("Lesson created");
-        toggleCreating();
-        router.refresh();
-      } catch (error) {
-        toast.error("Something went wrong");
-      }
-    }; 
- 
+    try {
+      setIsUpdating(true);
+      const formData = new FormData();
+      formData.append("title", values?.title);
+      formData.append("slug", getSlug(values?.title));
+      formData.append("moduleId", moduleId);
+      formData.append("order", lessons.length);
+
+      const lesson = await createLesson(formData);
+
+      setLessons((currentLessons) => [
+        ...currentLessons,
+        {
+          id: lesson?._id.toString(),
+          title: values.title,
+        },
+      ]);
+      toast.success("Lesson created");
+      toggleCreating();
+      form.reset();
+      router.refresh();
+    } catch (error) {
+      toast.error("Something went wrong");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   const onReorder = async (updateData) => {
-    console.log({ updateData });
     try {
       setIsUpdating(true);
       await reOrderLesson(updateData);
@@ -89,9 +95,14 @@ export const LessonForm = ({ initialData, moduleId,courseId }) => {
   };
 
   const onEdit = (id) => {
-    const foundLesson = lessons.find(lessons => lessons.id === id);
+    const foundLesson = lessons.find((lesson) => lesson.id === id);
     setLessonToEdit(foundLesson);
     setIsEditing(true);
+  };
+
+  const handleModalClose = () => {
+    setIsEditing(false);
+    router.refresh();
   };
 
   return (
@@ -147,7 +158,7 @@ export const LessonForm = ({ initialData, moduleId,courseId }) => {
         <div
           className={cn(
             "text-sm mt-2",
-            !lessons?.length && "text-slate-500 italic"
+            !lessons?.length && "text-slate-500 italic",
           )}
         >
           {!lessons?.length && "No module"}
@@ -163,7 +174,13 @@ export const LessonForm = ({ initialData, moduleId,courseId }) => {
           Drag & Drop to reorder the modules
         </p>
       )}
-      <LessonModal open={isEditing} setOpen={setIsEditing} courseId={courseId} lesson={lessonToEdit} moduleId={moduleId} />
+      <LessonModal
+        open={isEditing}
+        setOpen={handleModalClose}
+        courseId={courseId}
+        lesson={lessonToEdit}
+        moduleId={moduleId}
+      />
     </div>
   );
 };

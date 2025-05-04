@@ -1,7 +1,7 @@
 import localFont from "next/font/local";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
 import { dbConnect } from "@/service/mongo";
 
@@ -21,31 +21,31 @@ export const metadata = {
   description: "Best Online Professional Courses",
 };
 
-const poppins = Inter({subsets: ['latin'], variable: "--font-poppins"});
+const poppins = Inter({ subsets: ["latin"], variable: "--font-poppins" });
 
 export default async function RootLayout({ children }) {
-
   const conn = await dbConnect();
   //console.log(conn)
-
 
   return (
     <html lang="en">
       <body
-        className={cn(`${geistSans.variable} ${geistMono.variable} antialiased, poppins.className`) }
+        className={cn(
+          `${geistSans.variable} ${geistMono.variable} antialiased, poppins.className`,
+        )}
       >
         {children}
-        <Toaster 
-          richColors 
-          position="top-center" 
+        <Toaster
+          richColors
+          position="top-center"
           expand={true}
           closeButton={true}
           toastOptions={{
             duration: 5000,
             style: {
-              fontSize: '14px',
-              fontWeight: '500',
-              padding: '12px 16px',
+              fontSize: "14px",
+              fontWeight: "500",
+              padding: "12px 16px",
             },
           }}
         />

@@ -41,6 +41,9 @@ const quillModules = {
     ["link", "image"],
     ["clean"],
   ],
+  clipboard: {
+    matchVisual: false,
+  },
 };
 
 export const TextContentForm = ({ initialData, courseId, lessonId }) => {
@@ -55,10 +58,18 @@ export const TextContentForm = ({ initialData, courseId, lessonId }) => {
   // Đảm bảo component chỉ render phía client
   useEffect(() => {
     setIsMounted(true);
-    setHtmlContent(initialData?.text_content || "");
+    if (initialData?.text_content) {
+      setHtmlContent(initialData.text_content);
+    }
   }, [initialData]);
 
-  const toggleEdit = () => setIsEditing((current) => !current);
+  const toggleEdit = () => {
+    // Khi tắt chế độ chỉnh sửa, cập nhật lại nội dung từ form
+    if (isEditing) {
+      setHtmlContent(form.getValues().text_content || "");
+    }
+    setIsEditing((current) => !current);
+  };
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -83,15 +94,14 @@ export const TextContentForm = ({ initialData, courseId, lessonId }) => {
       setHtmlContent(values.text_content);
       toast.success("Nội dung bài học đã được cập nhật");
       toggleEdit();
-      router.refresh();
+
+      // Soft refresh sau một khoảng thời gian ngắn
+      setTimeout(() => {
+        router.refresh();
+      }, 300);
     } catch {
       toast.error("Đã xảy ra lỗi");
     }
-  };
-
-  // Hiển thị nội dung HTML an toàn
-  const createMarkup = (html) => {
-    return { __html: html };
   };
 
   const handleQuillChange = (content) => {
@@ -123,8 +133,8 @@ export const TextContentForm = ({ initialData, courseId, lessonId }) => {
       {!isEditing ? (
         <div className="mt-4">
           <div
-            className="text-sm prose max-w-none bg-white p-4 rounded"
-            dangerouslySetInnerHTML={createMarkup(htmlContent)}
+            className="text-sm prose max-w-none bg-white p-4 rounded content-view"
+            dangerouslySetInnerHTML={{ __html: htmlContent }}
           />
         </div>
       ) : (
@@ -148,6 +158,7 @@ export const TextContentForm = ({ initialData, courseId, lessonId }) => {
                         className="min-h-[250px]"
                         value={field.value}
                         onChange={handleQuillChange}
+                        preserveWhitespace={true}
                       />
                     </div>
                   </FormControl>
