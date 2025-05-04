@@ -1,4 +1,4 @@
-'use client'
+"use client";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -18,17 +18,17 @@ import { ProgressBar } from "@tremor/react";
 
 export function SignupForm() {
   const router = useRouter();
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordStrength, setPasswordStrength] = useState(0);
   const [passwordRequirements, setPasswordRequirements] = useState({
     length: false,
     lowercase: false,
     uppercase: false,
     number: false,
-    special: false
+    special: false,
   });
 
   // Kiểm tra độ mạnh mật khẩu khi người dùng nhập
@@ -40,7 +40,7 @@ export function SignupForm() {
         lowercase: false,
         uppercase: false,
         number: false,
-        special: false
+        special: false,
       });
       return;
     }
@@ -50,7 +50,7 @@ export function SignupForm() {
       lowercase: /[a-z]/.test(password),
       uppercase: /[A-Z]/.test(password),
       number: /[0-9]/.test(password),
-      special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)
+      special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
     };
 
     setPasswordRequirements(requirements);
@@ -81,7 +81,7 @@ export function SignupForm() {
   async function onSubmit(event) {
     event.preventDefault();
     setIsLoading(true);
-    setError('');
+    setError("");
 
     try {
       const formData = new FormData(event.currentTarget);
@@ -93,20 +93,20 @@ export function SignupForm() {
 
       // Kiểm tra mật khẩu xác nhận
       if (password !== confirmPassword) {
-        setError('Mật khẩu xác nhận không khớp.');
+        setError("Mật khẩu xác nhận không khớp.");
         setIsLoading(false);
         return;
       }
 
       // Kiểm tra độ mạnh mật khẩu
       if (passwordStrength < 100) {
-        setError('Mật khẩu chưa đáp ứng đủ các yêu cầu bảo mật.');
+        setError("Mật khẩu chưa đáp ứng đủ các yêu cầu bảo mật.");
         setIsLoading(false);
         return;
       }
 
       // Mặc định role là user (không còn phân biệt student/instructor)
-      const userRole = "user"; 
+      const userRole = "user";
 
       const response = await fetch("/api/register", {
         method: "POST",
@@ -118,8 +118,8 @@ export function SignupForm() {
           lastName,
           email,
           password,
-          userRole 
-        })
+          userRole,
+        }),
       });
 
       if (response.status === 201) {
@@ -133,18 +133,18 @@ export function SignupForm() {
       setError(e.message || "Có lỗi xảy ra khi đăng ký.");
     } finally {
       setIsLoading(false);
-    } 
+    }
   }
 
   return (
     <Card className="mx-auto max-w-md">
       <CardHeader>
         <CardTitle className="text-xl">
-        <p className="mt-5 text-3xl font-bold leading-tight text-gray-900 sm:leading-tight sm:text-5xl lg:text-3xl lg:leading-tight font-pj">
-       <span className="relative inline-flex sm:inline">
-                <span className="bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] blur-lg filter opacity-30 w-full h-full absolute inset-0"></span>
+          <p className="mt-5 text-3xl font-bold leading-tight text-gray-900 sm:leading-tight sm:text-5xl lg:text-3xl lg:leading-tight font-pj">
+            <span className="relative inline-flex sm:inline">
+              <span className="bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] blur-lg filter opacity-30 w-full h-full absolute inset-0"></span>
               <span className="relative">Đăng ký</span>
-          </span>
+            </span>
           </p>
         </CardTitle>
         <CardDescription>
@@ -153,121 +153,146 @@ export function SignupForm() {
       </CardHeader>
       <CardContent>
         <form onSubmit={onSubmit}>
-        <div className="grid gap-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="grid gap-2">
+          <div className="grid gap-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
                 <Label htmlFor="first-name">Họ</Label>
-                <Input id="first-name" name="first-name" placeholder="Nguyễn" required />
+                <Input
+                  id="first-name"
+                  name="first-name"
+                  placeholder="Nguyễn"
+                  required
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="last-name">Tên</Label>
+                <Input
+                  id="last-name"
+                  name="last-name"
+                  placeholder="Văn A"
+                  required
+                />
+              </div>
             </div>
             <div className="grid gap-2">
-                <Label htmlFor="last-name">Tên</Label>
-                <Input id="last-name" name="last-name" placeholder="Văn A" required />
-            </div>
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              name="email" 
-              type="email"
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
                 placeholder="email@example.com"
-              required
-            />
-          </div>
-          <div className="grid gap-2">
+                required
+              />
+            </div>
+            <div className="grid gap-2">
               <Label htmlFor="password">Mật khẩu</Label>
-              <Input 
-                id="password" 
-                name="password" 
-                type="password" 
+              <Input
+                id="password"
+                name="password"
+                type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                required 
+                required
                 className="mb-1"
               />
-              
+
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-xs">
                   <span>Độ mạnh: {getPasswordStrengthLabel()}</span>
                   <span>{passwordStrength}%</span>
                 </div>
-                <ProgressBar value={passwordStrength} color={getPasswordStrengthColor()} className="mt-1" />
-                
+                <ProgressBar
+                  value={passwordStrength}
+                  color={getPasswordStrengthColor()}
+                  className="mt-1"
+                />
+
                 <div className="mt-2 space-y-1.5">
                   <p className="text-xs font-medium mb-1">Mật khẩu phải có:</p>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-1 text-xs">
                     <div className="flex items-center gap-1.5">
-                      {passwordRequirements.length ? 
-                        <CheckCircle2 className="h-3.5 w-3.5 text-green-500" /> : 
+                      {passwordRequirements.length ? (
+                        <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+                      ) : (
                         <XCircle className="h-3.5 w-3.5 text-red-500" />
-                      }
+                      )}
                       <span>Ít nhất 8 ký tự</span>
                     </div>
                     <div className="flex items-center gap-1.5">
-                      {passwordRequirements.lowercase ? 
-                        <CheckCircle2 className="h-3.5 w-3.5 text-green-500" /> : 
+                      {passwordRequirements.lowercase ? (
+                        <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+                      ) : (
                         <XCircle className="h-3.5 w-3.5 text-red-500" />
-                      }
+                      )}
                       <span>Chữ thường (a-z)</span>
                     </div>
                     <div className="flex items-center gap-1.5">
-                      {passwordRequirements.uppercase ? 
-                        <CheckCircle2 className="h-3.5 w-3.5 text-green-500" /> : 
+                      {passwordRequirements.uppercase ? (
+                        <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+                      ) : (
                         <XCircle className="h-3.5 w-3.5 text-red-500" />
-                      }
+                      )}
                       <span>Chữ hoa (A-Z)</span>
                     </div>
                     <div className="flex items-center gap-1.5">
-                      {passwordRequirements.number ? 
-                        <CheckCircle2 className="h-3.5 w-3.5 text-green-500" /> : 
+                      {passwordRequirements.number ? (
+                        <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+                      ) : (
                         <XCircle className="h-3.5 w-3.5 text-red-500" />
-                      }
+                      )}
                       <span>Chữ số (0-9)</span>
                     </div>
                     <div className="flex items-center gap-1.5">
-                      {passwordRequirements.special ? 
-                        <CheckCircle2 className="h-3.5 w-3.5 text-green-500" /> : 
+                      {passwordRequirements.special ? (
+                        <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+                      ) : (
                         <XCircle className="h-3.5 w-3.5 text-red-500" />
-                      }
+                      )}
                       <span>Ký tự đặc biệt (!@#$...)</span>
                     </div>
                   </div>
                 </div>
               </div>
-          </div>
-          <div className="grid gap-2">
+            </div>
+            <div className="grid gap-2">
               <Label htmlFor="confirmPassword">Xác nhận mật khẩu</Label>
-              <Input 
-                id="confirmPassword" 
-                name="confirmPassword" 
-                type="password" 
+              <Input
+                id="confirmPassword"
+                name="confirmPassword"
+                type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                required 
+                required
               />
               {password && confirmPassword && password !== confirmPassword && (
-                <p className="text-xs text-red-500 mt-1">Mật khẩu xác nhận không khớp</p>
+                <p className="text-xs text-red-500 mt-1">
+                  Mật khẩu xác nhận không khớp
+                </p>
               )}
             </div>
             {error && (
               <div className="text-sm text-red-500 p-2 bg-red-50 rounded-md border border-red-200">
                 {error}
-          </div>
+              </div>
             )}
-            <Button 
-              type="submit" 
-              className="w-full" 
-              disabled={isLoading || passwordStrength < 100 || password !== confirmPassword}
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={
+                isLoading ||
+                passwordStrength < 100 ||
+                password !== confirmPassword
+              }
             >
               {isLoading ? "Đang xử lý..." : "Tạo tài khoản"}
-          </Button>
-        </div>
-        <div className="mt-4 text-center text-sm">
+            </Button>
+          </div>
+          <div className="mt-4 text-center text-sm">
             Đã có tài khoản?{" "}
             <Link href="/login" className="underline text-primary font-medium">
               Đăng nhập
-          </Link>
-        </div>
+            </Link>
+          </div>
         </form>
       </CardContent>
     </Card>

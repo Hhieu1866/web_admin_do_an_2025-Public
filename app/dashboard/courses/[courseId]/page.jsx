@@ -20,64 +20,63 @@ import { getCategories } from "@/queries/categories";
 import { replaceMongoIdInArray } from "@/lib/convertData";
 import { ObjectId } from "mongoose";
 import { getAllQuizSets } from "@/queries/quizzes";
- 
-const EditCourse = async ({ params: {courseId} }) => {
- 
+
+const EditCourse = async ({ params: { courseId } }) => {
   const course = await getCourseDetails(courseId);
   const categories = await getCategories();
-  
 
-  const mappedCategories = categories.map(c => {
+  const mappedCategories = categories.map((c) => {
     return {
       value: c.title,
       label: c.title,
       id: c.id,
-    }
+    };
   });
- // console.log(mappedCategories);
+  // console.log(mappedCategories);
 
- // Sanitize fucntion for handle ObjectID and Buffer
-function sanitizeData(data) {
-  return JSON.parse(
-    JSON.stringify(data, (key, value) => {
-      if (value instanceof ObjectId) {
+  // Sanitize fucntion for handle ObjectID and Buffer
+  function sanitizeData(data) {
+    return JSON.parse(
+      JSON.stringify(data, (key, value) => {
+        if (value instanceof ObjectId) {
           return value.toString();
-      }
-      if (Buffer.isBuffer(value)) {
-        return value.toString("base64")
-      }
-      return value;
-    })
+        }
+        if (Buffer.isBuffer(value)) {
+          return value.toString("base64");
+        }
+        return value;
+      }),
+    );
+  }
+
+  const rawmodules = await replaceMongoIdInArray(course?.modules).sort(
+    (a, b) => a.order - b.order,
   );
-}
 
- const rawmodules = await replaceMongoIdInArray(course?.modules).sort((a,b) => a.order - b.order);
-
- const modules = sanitizeData(rawmodules);
+  const modules = sanitizeData(rawmodules);
 
   const allQuizSets = await getAllQuizSets(true);
   let mappedQuizSet = [];
   if (allQuizSets && allQuizSets.length > 0) {
-    mappedQuizSet = allQuizSets.map(quizSet => {
+    mappedQuizSet = allQuizSets.map((quizSet) => {
       return {
         value: quizSet.id,
         label: quizSet.title,
-      }
-    })
+      };
+    });
   }
 
   //console.log(mappedQuizSet);
- 
 
   return (
-    <> 
-    {
-     !course.active &&  <AlertBanner
-     label="This course is unpublished. It will not be visible in the course."
-     variant="warning"
-   />
-    }
-      
+    <>
+      {!course.active && (
+        <AlertBanner
+          label="This course is unpublished. It will not be visible in the course."
+          variant="warning"
+        />
+      )}
+
       <div className="p-6">
         <div className="flex items-center justify-end">
           <CourseActions courseId={courseId} isActive={course?.active} />
@@ -100,29 +99,50 @@ function sanitizeData(data) {
               }}
               courseId={courseId}
             />
-            <DescriptionForm initialData={{description: course?.description }} courseId={courseId} />
+            <DescriptionForm
+              initialData={{ description: course?.description }}
+              courseId={courseId}
+            />
 
-            <ImageForm initialData={{imageUrl: `/assets/images/courses/${course?.thumbnail}`}} courseId={courseId} />
-           
-            <CategoryForm initialData={{value: course?.category?.title }} courseId={courseId} options={mappedCategories} />
+            <ImageForm
+              initialData={{
+                imageUrl: `/assets/images/courses/${course?.thumbnail}`,
+                thumbnail: course?.thumbnail,
+                thumbnailUrl: course?.thumbnailUrl,
+              }}
+              courseId={courseId}
+            />
 
-            <QuizSetForm initialData={{ quizSetId: course?.quizSet?._id.toString() }} courseId={courseId} options={mappedQuizSet} />
+            <CategoryForm
+              initialData={{ value: course?.category?.title }}
+              courseId={courseId}
+              options={mappedCategories}
+            />
+
+            <QuizSetForm
+              initialData={{ quizSetId: course?.quizSet?._id.toString() }}
+              courseId={courseId}
+              options={mappedQuizSet}
+            />
           </div>
           <div className="space-y-6">
-            <div> 
+            <div>
               <div className="flex items-center gap-x-2 mb-6">
                 <IconBadge icon={ListChecks} />
                 <h2 className="text-xl">Course Modules</h2>
               </div>
 
-              <ModulesForm initialData={modules} courseId={courseId} /> 
+              <ModulesForm initialData={modules} courseId={courseId} />
             </div>
             <div>
               <div className="flex items-center gap-x-2">
                 <IconBadge icon={CircleDollarSign} />
                 <h2 className="text-xl">Sell you course</h2>
               </div>
- <PriceForm initialData={{price: course?.price }} courseId={courseId} />
+              <PriceForm
+                initialData={{ price: course?.price }}
+                courseId={courseId}
+              />
             </div>
           </div>
         </div>

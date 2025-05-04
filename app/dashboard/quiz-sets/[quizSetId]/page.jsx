@@ -1,4 +1,3 @@
- 
 import AlertBanner from "@/components/alert-banner";
 import { IconBadge } from "@/components/icon-badge";
 import { LayoutDashboard } from "lucide-react";
@@ -6,7 +5,7 @@ import { QuizSetAction } from "./_components/quiz-set-action";
 import { TitleForm } from "./_components/title-form";
 import { AddQuizForm } from "./_components/add-quiz-form";
 import { cn } from "@/lib/utils";
- 
+
 import { Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Delete } from "lucide-react";
@@ -16,56 +15,53 @@ import { Circle } from "lucide-react";
 import { getQuizSetById } from "@/queries/quizzes";
 import { QuizCardActions } from "./_components/quiz-card-action";
 
- 
-const EditQuizSet = async ({ params: {quizSetId} }) => {
-
+const EditQuizSet = async ({ params: { quizSetId } }) => {
   const quizSet = await getQuizSetById(quizSetId);
-  
 
-  const quizzes = quizSet.quizIds.map(quiz => {
+  const quizzes = quizSet.quizIds.map((quiz) => {
     return {
       id: quiz._id.toString(),
       title: quiz.title,
-      options: quiz.options.map(option => {
+      options: quiz.options.map((option) => {
         return {
           label: option.text,
           isTrue: option.is_correct,
-        }
-      })
-    }
-  })
- // console.log(quizzes);
-
+        };
+      }),
+    };
+  });
+  // console.log(quizzes);
 
   // const [quizes, setQuizes] = useState(initialQuizes);
   return (
     <>
-    {
-      !quizSet.active && <AlertBanner
-      label="This Quiz is unpublished. It will not be visible in the course."
-      variant="warning"
-    />
-    }
-      
+      {!quizSet.active && (
+        <AlertBanner
+          label="This Quiz is unpublished. It will not be visible in the course."
+          variant="warning"
+        />
+      )}
+
       <div className="p-6">
         <div className="flex items-center justify-end">
-          <QuizSetAction quizSetId={quizSetId} quiz={quizSet?.active} quizId={quizSet?.id} />
+          <QuizSetAction
+            quizSetId={quizSetId}
+            quiz={quizSet?.active}
+            quizId={quizSet?.id}
+          />
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2  gap-6 mt-16">
           {/* Quiz List */}
           <div className="max-lg:order-2">
             <h2 className="text-xl mb-6">Quiz List</h2>
-      {
-        quizzes.length === 0 && (
-             <AlertBanner
-              label="No Quiz are in the set, add some using the form above."
-              variant="warning"
-              className="rounded mb-6"
-            />
-        )
-      }    
-           
-            
+            {quizzes.length === 0 && (
+              <AlertBanner
+                label="No Quiz are in the set, add some using the form above."
+                variant="warning"
+                className="rounded mb-6"
+              />
+            )}
+
             <div className="space-y-6">
               {quizzes.map((quiz) => {
                 return (
@@ -80,7 +76,7 @@ const EditQuizSet = async ({ params: {quizSetId} }) => {
                         return (
                           <div
                             className={cn(
-                              "py-1.5 rounded-sm  text-sm flex items-center gap-1 text-gray-600"
+                              "py-1.5 rounded-sm  text-sm flex items-center gap-1 text-gray-600",
                             )}
                             key={option.label}
                           >
@@ -96,7 +92,7 @@ const EditQuizSet = async ({ params: {quizSetId} }) => {
                       })}
                     </div>
                     <div className="flex items-center justify-end gap-2 mt-6">
-       <QuizCardActions quiz={quiz} quizSetId={quizSetId} />     
+                      <QuizCardActions quiz={quiz} quizSetId={quizSetId} />
                     </div>
                   </div>
                 );
@@ -110,7 +106,8 @@ const EditQuizSet = async ({ params: {quizSetId} }) => {
             </div>
             <div className="max-w-[800px]">
               <TitleForm
-                initialData={{ title: quizSet.title  }} quizSetId={quizSetId}
+                initialData={{ title: quizSet.title }}
+                quizSetId={quizSetId}
               />
             </div>
 
