@@ -7,14 +7,24 @@ import Image from "next/image";
 import Link from "next/link";
 import Menu from "./component/account-menu";
 import AccountSidebar from "./component/account-sidebar";
+import { auth } from "@/auth";
+import { getUserByEmail } from "@/queries/users";
+import { redirect } from "next/navigation";
  
-function Layout({ tabs }) {
+async function Layout({ tabs }) {
+	const session = await auth();
+    if (!session?.user) {
+        redirect("/login");
+    }
+
+    const loggedInUser = await getUserByEmail(session?.user?.email);
+
 	return (
 <section className="relative pb-16">
 {/*end container*/}
 <div className="container relative mt-10">
 	<div className="lg:flex">
-		<AccountSidebar/>
+		<AccountSidebar loggedInUser={loggedInUser} />
 		<div className="lg:w-3/4 md:px-3 mt-[30px] lg:mt-0">
 			{tabs}
 				

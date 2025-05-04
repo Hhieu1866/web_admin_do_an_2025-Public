@@ -43,9 +43,13 @@ export const Navbar = () => {
               <Avatar>
                 <AvatarImage
                   src={loggedInUser?.profilePicture}
-                  alt="@shadcn"
+                  alt={`${loggedInUser?.firstName || ''} ${loggedInUser?.lastName || ''}`}
+                  style={{ objectFit: 'cover', objectPosition: 'center' }}
                 />
-                <AvatarFallback>CN</AvatarFallback>
+                <AvatarFallback className="text-xs">
+                  {loggedInUser?.firstName?.[0] || ''}
+                  {loggedInUser?.lastName?.[0] || ''}
+                </AvatarFallback>
               </Avatar>
             </div>
           </DropdownMenuTrigger>

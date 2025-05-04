@@ -1,4 +1,3 @@
- 
 import Element from "@/components/element";
 import { SectionTitle } from "@/components/section-title";
 import Support from "@/components/support";
@@ -88,15 +87,15 @@ const HomePage = async () => {
           Learn By Doing with <br/> Easy Learning
           </h1>
           <p className="max-w-[42rem] leading-normal text-muted-foreground sm:text-xl sm:leading-8">
-            “You don’t understand anything until you learn it more than one
-            way.”
+            "You don't understand anything until you learn it more than one
+            way."
           </p>
           <div className="flex items-center gap-3 flex-wrap justify-center">
             <Link href="/courses" className={cn(buttonVariants({ size: "lg" }))}>
               Explore Now
             </Link>
             <Link
-              href="/register/instructor"
+              href="/register"
               className={cn(buttonVariants({ variant: "outline", size: "lg" }))}
             >
               Become An Instructor

@@ -1,4 +1,4 @@
-import mongoose,{Schema} from "mongoose";
+import mongoose, {Schema} from "mongoose";
 
 const userSchema = new Schema({
     firstName:{
@@ -37,13 +37,27 @@ const userSchema = new Schema({
   
     profilePicture:{
         required: false,
-        type: String,
-        default: "https://i.pravatar.cc"
+        type: String
     },
     designation:{
         required: false,
         type: String,
         default: ""
-    } ,
+    },
+    createdAt:{
+        type: Date,
+        default: Date.now
+    }
 });
-export const User = mongoose.models.User ?? mongoose.model("User",userSchema);
+
+// Xử lý an toàn hơn để tránh lỗi khi mongoose chưa được kết nối
+let User;
+try {
+    // Kiểm tra xem model đã tồn tại chưa, nếu chưa thì tạo mới
+    User = mongoose.models?.User || mongoose.model("User", userSchema);
+} catch (error) {
+    // Trong trường hợp có lỗi, tạo model mới
+    User = mongoose.model("User", userSchema);
+}
+
+export { User };

@@ -1,4 +1,4 @@
-import mongoose,{Schema} from "mongoose";
+import mongoose, {Schema} from "mongoose";
 
 const courseSchema = new Schema({
     title:{
@@ -51,4 +51,15 @@ const courseSchema = new Schema({
         type: Date
     },
 });
-export const Course = mongoose.models.Course ?? mongoose.model("Course",courseSchema);
+
+// Xử lý an toàn để tránh lỗi khi mongoose chưa được kết nối
+let Course;
+try {
+    // Kiểm tra xem model đã tồn tại chưa
+    Course = mongoose.models.Course || mongoose.model("Course", courseSchema);
+} catch (error) {
+    // Trong trường hợp có lỗi, tạo model mới
+    Course = mongoose.model("Course", courseSchema);
+}
+
+export { Course };

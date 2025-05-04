@@ -14,34 +14,56 @@ export const {
     providers: [
         CredentialsProvider({
             async authorize(credentials) {
-                if (credentials == null) return null; 
+                if (!credentials?.email || !credentials?.password) {
+                    throw new Error("Vui lòng nhập đầy đủ email và mật khẩu");
+                }
 
         try {
             const user = await User.findOne({email: credentials?.email });
-            //console.log(user);
 
-            if (user) {
-                const isMatch = await bcrypt.compare(credentials.password, user.password )
+                    if (!user) {
+                        // Thông báo cụ thể khi không tìm thấy tài khoản
+                        throw new Error("Tài khoản không tồn tại");
+                    }
+                    
+                    const isMatch = await bcrypt.compare(credentials.password, user.password);
 
                 if (isMatch) {
-                    return user;
+                        // Trả về thông tin người dùng không bao gồm password
+                        return {
+                            id: user._id.toString(),
+                            email: user.email,
+                            name: `${user.firstName} ${user.lastName}`,
+                            role: user.role
+                        };
                 } else {
-                    console.error("Password Mismatch");
-                    throw new Error("Check your password");
+                        // Thông báo cụ thể khi sai mật khẩu
+                        throw new Error("Mật khẩu không chính xác");
                 } 
-
-            } else {
-                console.error("User not found");
-                throw new Error("User not found");
+                } catch (error) {
+                    console.error("Lỗi đăng nhập:", error);
+                    // Trả về lỗi với thông báo cụ thể
+                    throw error;
             } 
-
-        } catch (err) {
-            console.error(err);
-            throw new Error(err);
-        }  
-
             }
         })
-
-    ]
+    ],
+    callbacks: {
+        async jwt({ token, user }) {
+            if (user) {
+                token.role = user.role;
+            }
+            return token;
+        },
+        async session({ session, token }) {
+            if (token) {
+                session.user.role = token.role;
+        }  
+            return session;
+            }
+    },
+    pages: {
+        signIn: '/login',
+        error: '/login'
+    }
 })

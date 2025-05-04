@@ -115,7 +115,7 @@ const EnrolledCourseCard = async ({enrollment}) => {
         <CourseProgress
             size="sm"
             value={totalProgress}
-            variant={110 === 100 ? "success" : ""}
+            variant={totalProgress === 100 ? "success" : "default"}
          />
 
 

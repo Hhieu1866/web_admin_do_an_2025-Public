@@ -35,7 +35,20 @@ export default async function RootLayout({ children }) {
         className={cn(`${geistSans.variable} ${geistMono.variable} antialiased, poppins.className`) }
       >
         {children}
-        <Toaster richColors position="top-center" />
+        <Toaster 
+          richColors 
+          position="top-center" 
+          expand={true}
+          closeButton={true}
+          toastOptions={{
+            duration: 5000,
+            style: {
+              fontSize: '14px',
+              fontWeight: '500',
+              padding: '12px 16px',
+            },
+          }}
+        />
       </body>
     </html>
   );
