@@ -47,5 +47,15 @@ const lessonSchema = new Schema({
     type: Number,
   },
 });
-export const Lesson =
-  mongoose.models.Lesson ?? mongoose.model("Lesson", lessonSchema);
+
+// Sửa lại cách khởi tạo model để tránh lỗi
+let LessonModel;
+try {
+  // Kiểm tra xem model đã tồn tại chưa
+  LessonModel = mongoose.model("Lesson");
+} catch (error) {
+  // Nếu chưa tồn tại, tạo mới model
+  LessonModel = mongoose.model("Lesson", lessonSchema);
+}
+
+export const Lesson = LessonModel;

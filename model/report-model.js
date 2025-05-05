@@ -1,23 +1,33 @@
-import mongoose,{Schema} from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
-const reportSchema = new Schema({ 
-    totalCompletedLessons:{
-        required: true,
-        type: Array,
-    },    
-    totalCompletedModeules:{
-        required: true,
-        type: Array
-    },    
-    course:{  type: Schema.ObjectId, ref: "Course" },
+const reportSchema = new Schema({
+  totalCompletedLessons: {
+    required: true,
+    type: Array,
+  },
+  totalCompletedModeules: {
+    required: true,
+    type: Array,
+  },
+  course: { type: Schema.ObjectId, ref: "Course" },
 
-    student:{  type: Schema.ObjectId, ref: "User" },
+  student: { type: Schema.ObjectId, ref: "User" },
 
-    quizAssessment:{  type: Schema.ObjectId, ref: "Assessment" }, 
-    completion_date: {
-        required: false,
-        type: Date
-    }
- 
+  quizAssessment: { type: Schema.ObjectId, ref: "Assessment" },
+  completion_date: {
+    required: false,
+    type: Date,
+  },
 });
-export const Report = mongoose.models.Report ?? mongoose.model("Report",reportSchema);
+
+// Sửa lại cách khởi tạo model để tránh lỗi
+let ReportModel;
+try {
+  // Kiểm tra xem model đã tồn tại chưa
+  ReportModel = mongoose.model("Report");
+} catch (error) {
+  // Nếu chưa tồn tại, tạo mới model
+  ReportModel = mongoose.model("Report", reportSchema);
+}
+
+export const Report = ReportModel;

@@ -15,5 +15,15 @@ const categorySchema = new Schema({
     default: "default-category.jpg",
   },
 });
-export const Category =
-  mongoose.models.Category ?? mongoose.model("Category", categorySchema);
+
+// Sửa lại cách khởi tạo model để tránh lỗi
+let CategoryModel;
+try {
+  // Kiểm tra xem model đã tồn tại chưa
+  CategoryModel = mongoose.model("Category");
+} catch (error) {
+  // Nếu chưa tồn tại, tạo mới model
+  CategoryModel = mongoose.model("Category", categorySchema);
+}
+
+export const Category = CategoryModel;
