@@ -2,6 +2,12 @@ import { NextResponse } from "next/server";
 import { dbConnect } from "@/service/mongo";
 import { User } from "@/model/user-model";
 import { replaceMongoIdInArray } from "@/lib/convertData";
+import { corsHeaders, handleCorsOptions } from "@/lib/cors";
+
+// Hàm xử lý CORS preflight request
+export async function OPTIONS() {
+  return handleCorsOptions();
+}
 
 export async function GET(request) {
   try {
@@ -45,18 +51,32 @@ export async function GET(request) {
     const totalPages = Math.ceil(total / limit);
 
     // Trả về kết quả đã chuyển đổi _id thành id
-    return NextResponse.json({
-      users: replaceMongoIdInArray(users),
-      total,
-      page,
-      limit,
-      totalPages,
-    });
+    return NextResponse.json(
+      {
+        users: replaceMongoIdInArray(users),
+        total,
+        page,
+        limit,
+        totalPages,
+      },
+      {
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "application/json",
+        },
+      },
+    );
   } catch (error) {
     console.error("Lỗi khi lấy danh sách người dùng:", error);
     return NextResponse.json(
       { error: "Lỗi khi lấy danh sách người dùng" },
-      { status: 500 },
+      {
+        status: 500,
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "application/json",
+        },
+      },
     );
   }
 }
