@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "seed": "node --no-warnings --experimental-modules scripts/seed.mjs"
+    "seed": "node --no-warnings --experimental-modules scripts/seed.mjs",
+    "vercel-install": "npm install --legacy-peer-deps"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^17.0.0",
@@ -50,9 +51,9 @@
     "next-auth": "^5.0.0-beta.25",
     "next-themes": "^0.4.3",
     "pdf-lib": "^1.17.1",
-    "react": "19.0.0-rc-66855b96-20241106",
+    "react": "^18.2.0",
     "react-day-picker": "^8.10.1",
-    "react-dom": "19.0.0-rc-66855b96-20241106",
+    "react-dom": "^18.2.0",
     "react-dropzone": "^14.3.5",
     "react-hook-form": "^7.56.2",
     "react-player": "^2.16.0",
