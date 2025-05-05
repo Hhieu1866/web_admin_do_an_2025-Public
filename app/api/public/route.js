@@ -177,3 +177,59 @@ export async function GET(request) {
     );
   }
 }
+
+/**
+ * API route công khai để xử lý các POST request
+ * Ví dụ: Đánh dấu bài học đã hoàn thành
+ */
+export async function POST(request) {
+  try {
+    // Kết nối đến MongoDB
+    await dbConnect();
+
+    // Lấy dữ liệu từ request body
+    const data = await request.json();
+    const { type, lessonId, userId } = data;
+
+    // Xử lý các loại request khác nhau
+    switch (type) {
+      case "mark-lesson-complete": {
+        // Kiểm tra dữ liệu đầu vào
+        if (!lessonId || !userId) {
+          return NextResponse.json(
+            { error: "Thiếu thông tin lessonId hoặc userId" },
+            { status: 400 },
+          );
+        }
+
+        // Kiểm tra sự tồn tại của bài học
+        const lesson = await Lesson.findById(lessonId);
+        if (!lesson) {
+          return NextResponse.json(
+            { error: "Không tìm thấy bài học" },
+            { status: 404 },
+          );
+        }
+
+        // TODO: Tạo model LessonProgress để lưu tiến độ học tập
+        // Ở đây tạm thời trả về thành công
+        return NextResponse.json({
+          success: true,
+          message: "Đã đánh dấu bài học hoàn thành",
+        });
+      }
+
+      default:
+        return NextResponse.json(
+          { error: "Loại yêu cầu không hợp lệ" },
+          { status: 400 },
+        );
+    }
+  } catch (error) {
+    console.error("Lỗi khi xử lý API public POST:", error);
+    return NextResponse.json(
+      { error: "Lỗi server khi xử lý yêu cầu" },
+      { status: 500 },
+    );
+  }
+}
