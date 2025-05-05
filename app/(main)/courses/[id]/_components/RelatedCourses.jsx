@@ -29,10 +29,32 @@ const RelatedCourses = ({ relatedCourses }) => {
           <CarouselNext />
           <CarouselContent>
             {relatedCourses.map((course) => {
-              const imageSrc = course?.thumbnailUrl
-                ? course.thumbnailUrl
-                : getImageUrl(course.thumbnail, "course");
+              console.log("Related course data:", course?._id, {
+                thumbnailUrl: course?.thumbnailUrl,
+                thumbnail: course?.thumbnail,
+              });
+
+              let imageSrc;
+
+              if (course?.thumbnailUrl) {
+                imageSrc = course.thumbnailUrl;
+              } else if (typeof course?.thumbnail === "string") {
+                imageSrc = getImageUrl(course.thumbnail, "course");
+              } else if (typeof course?.thumbnail === "object") {
+                imageSrc = getImageUrl(course.thumbnail, "course");
+              } else {
+                imageSrc = getImageUrl(null, "course");
+              }
+
               const showImage = shouldDisplayImage(imageSrc);
+
+              console.log(
+                "Related image source:",
+                imageSrc,
+                "Should show:",
+                showImage,
+              );
+
               return (
                 <CarouselItem
                   key={course._id}

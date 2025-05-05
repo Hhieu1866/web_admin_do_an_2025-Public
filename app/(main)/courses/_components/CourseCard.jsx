@@ -10,10 +10,26 @@ import EnrollCourse from "@/components/enroll-course";
 import { getImageUrl, shouldDisplayImage } from "@/lib/imageUtils";
 
 const CourseCard = ({ course }) => {
-  const imageSrc = course?.thumbnailUrl
-    ? course.thumbnailUrl
-    : getImageUrl(course?.thumbnail, "course");
+  console.log("Course data:", course?.id, {
+    thumbnailUrl: course?.thumbnailUrl,
+    thumbnail: course?.thumbnail,
+  });
+
+  let imageSrc;
+
+  if (course?.thumbnailUrl) {
+    imageSrc = course.thumbnailUrl;
+  } else if (typeof course?.thumbnail === "string") {
+    imageSrc = getImageUrl(course.thumbnail, "course");
+  } else if (typeof course?.thumbnail === "object") {
+    imageSrc = getImageUrl(course.thumbnail, "course");
+  } else {
+    imageSrc = getImageUrl(null, "course");
+  }
+
   const showImage = shouldDisplayImage(imageSrc);
+
+  console.log("Image source:", imageSrc, "Should show:", showImage);
 
   return (
     <div className="group hover:shadow-sm transition overflow-hidden border rounded-lg p-3 h-full">

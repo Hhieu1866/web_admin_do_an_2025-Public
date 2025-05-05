@@ -74,6 +74,7 @@ export async function GET(request) {
             "title",
             "subtitle",
             "thumbnail",
+            "thumbnailUrl",
             "price",
             "category",
             "instructor",

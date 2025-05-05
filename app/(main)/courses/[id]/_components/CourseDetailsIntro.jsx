@@ -17,11 +17,20 @@ const CourseDetailsIntro = async ({ course }) => {
     loogedInUser?.id,
   );
 
+  // Debug course data
+  console.log("Course detail data:", course?.id, {
+    thumbnailUrl: course?.thumbnailUrl,
+    thumbnail: course?.thumbnail,
+  });
+
   // Cập nhật cách xử lý hình ảnh
   const imageSrc = course?.thumbnailUrl
     ? course.thumbnailUrl
     : getImageUrl(course?.thumbnail, "course");
   const showImage = shouldDisplayImage(imageSrc);
+
+  // Log image source
+  console.log("Detail image source:", imageSrc, "Should show:", showImage);
 
   return (
     <div className="overflow-x-hidden grainy">
