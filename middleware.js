@@ -2,26 +2,9 @@ import NextAuth from "next-auth";
 import { authConfig } from "./auth.config";
 import { NextResponse } from "next/server";
 import { PUBLIC_ROUTES, LOGIN, ROOT } from "@/lib/routes";
-import { corsHeaders, preflightHeaders } from "@/lib/cors";
 
 export async function middleware(request) {
   const { nextUrl } = request;
-
-  // Handle CORS for API routes
-  if (nextUrl.pathname.startsWith("/api/")) {
-    if (request.method === "OPTIONS") {
-      return new NextResponse(null, {
-        status: 200,
-        headers: preflightHeaders,
-      });
-    }
-
-    const response = NextResponse.next();
-    Object.entries(corsHeaders).forEach(([key, value]) => {
-      response.headers.set(key, value);
-    });
-    return response;
-  }
 
   // Auth middleware
   const auth = await NextAuth(authConfig).auth(request);
@@ -39,9 +22,5 @@ export async function middleware(request) {
 }
 
 export const config = {
-  matcher: [
-    "/((?!api/auth|_next|favicon.ico|.*\\..*).*)",
-    "/api/:path*",
-    "/",
-  ],
+  matcher: ["/((?!api/auth|_next|favicon.ico|.*\\..*).*)", "/api/:path*", "/"],
 };

@@ -13,7 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm as useFormRHF } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { createReview } from "@/app/actions/review";
 
@@ -32,7 +32,7 @@ const formSchema = z.object({
 });
 
 export const ReviewModal = ({ courseId, loginid, open, setOpen }) => {
-  const form = useFormRHF({
+  const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
       rating: "",
