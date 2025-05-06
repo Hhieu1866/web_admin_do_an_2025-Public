@@ -46,6 +46,37 @@ const monthlyRegistrationData = [
   { name: "T12", value: 450 },
 ];
 
+// Skeleton dành cho biểu đồ
+function ChartSkeleton() {
+  return (
+    <div className="h-full w-full">
+      <div className="flex flex-col gap-3 p-4">
+        <div className="h-4 w-1/3 animate-pulse rounded-md bg-muted"></div>
+        <div className="flex h-[280px] flex-col justify-end gap-1">
+          <div className="flex items-end w-full justify-between px-3">
+            {Array.from({ length: 12 }).map((_, i) => (
+              <div
+                key={i}
+                className="w-[7%] animate-pulse rounded-t bg-muted"
+                style={{ height: `${Math.random() * 60 + 20}%` }}
+              ></div>
+            ))}
+          </div>
+          <div className="h-[1px] w-full bg-muted"></div>
+          <div className="flex justify-between px-3 pt-2">
+            {Array.from({ length: 12 }).map((_, i) => (
+              <div
+                key={i}
+                className="h-3 w-[7%] animate-pulse rounded-md bg-muted"
+              ></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function MonthlyRegistrationsChart() {
   const [data, setData] = useState(dailyRegistrationData);
   const [loading, setLoading] = useState(true);
@@ -84,9 +115,7 @@ export function MonthlyRegistrationsChart() {
       <CardContent>
         <div className="h-[300px]">
           {loading ? (
-            <div className="h-full w-full flex items-center justify-center">
-              <p className="text-muted-foreground">Đang tải dữ liệu...</p>
-            </div>
+            <ChartSkeleton />
           ) : (
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
@@ -183,9 +212,7 @@ export function YearlyRegistrationsChart() {
       <CardContent>
         <div className="h-[300px]">
           {loading ? (
-            <div className="h-full w-full flex items-center justify-center">
-              <p className="text-muted-foreground">Đang tải dữ liệu...</p>
-            </div>
+            <ChartSkeleton />
           ) : (
             <ResponsiveContainer width="100%" height="100%">
               <BarChart

@@ -10,6 +10,22 @@ import { Users, BookOpen, Presentation, Activity } from "lucide-react";
 import { useState, useEffect } from "react";
 import axios from "@/lib/axios";
 
+// Component skeleton cho card thống kê
+function StatCardSkeleton() {
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <div className="h-4 w-24 animate-pulse rounded-md bg-muted"></div>
+        <div className="h-4 w-4 animate-pulse rounded-md bg-muted"></div>
+      </CardHeader>
+      <CardContent>
+        <div className="h-7 w-16 animate-pulse rounded-md bg-muted mb-2"></div>
+        <div className="h-3 w-32 animate-pulse rounded-md bg-muted"></div>
+      </CardContent>
+    </Card>
+  );
+}
+
 export function StatsCards() {
   const [stats, setStats] = useState({
     users: { total: 0, increase: 0 },
@@ -56,29 +72,40 @@ export function StatsCards() {
     return num.toLocaleString("vi-VN");
   };
 
+  if (loading) {
+    return (
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <StatCardSkeleton />
+        <StatCardSkeleton />
+        <StatCardSkeleton />
+        <StatCardSkeleton />
+      </div>
+    );
+  }
+
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       <StatsCard
         title="Tổng người dùng"
-        value={loading ? "Đang tải..." : formatNumber(stats.users.total)}
+        value={formatNumber(stats.users.total)}
         description={`Tăng ${stats.users.increase}% so với tháng trước`}
         icon={<Users className="h-4 w-4 text-muted-foreground" />}
       />
       <StatsCard
         title="Khóa học"
-        value={loading ? "Đang tải..." : formatNumber(stats.courses.total)}
+        value={formatNumber(stats.courses.total)}
         description={`Tăng ${stats.courses.increase}% so với tháng trước`}
         icon={<BookOpen className="h-4 w-4 text-muted-foreground" />}
       />
       <StatsCard
         title="Buổi học trực tuyến"
-        value={loading ? "Đang tải..." : formatNumber(stats.watches.total)}
+        value={formatNumber(stats.watches.total)}
         description={`Tăng ${stats.watches.increase}% so với tháng trước`}
         icon={<Presentation className="h-4 w-4 text-muted-foreground" />}
       />
       <StatsCard
         title="Tỷ lệ tham gia"
-        value={loading ? "Đang tải..." : `${stats.participation.rate}%`}
+        value={`${stats.participation.rate}%`}
         description={`Tăng ${stats.participation.increase}% so với tháng trước`}
         icon={<Activity className="h-4 w-4 text-muted-foreground" />}
       />
