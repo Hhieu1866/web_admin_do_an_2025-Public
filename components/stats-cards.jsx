@@ -1,37 +1,89 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Users, BookOpen, Presentation, Activity } from "lucide-react"
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Users, BookOpen, Presentation, Activity } from "lucide-react";
+import { useState, useEffect } from "react";
+import axios from "@/lib/axios";
 
 export function StatsCards() {
+  const [stats, setStats] = useState({
+    users: { total: 0, increase: 0 },
+    courses: { total: 0, increase: 0 },
+    watches: { total: 0, increase: 0 },
+    participation: { rate: 0, increase: 0 },
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await axios.get("/api/admin/stats");
+        console.log("Dữ liệu thống kê:", response);
+        setStats({
+          users: {
+            total: response.totalUsers || 0,
+            increase: 12, // Giá trị mặc định nếu API chưa trả về
+          },
+          courses: {
+            total: response.totalCourses || 0,
+            increase: 8,
+          },
+          watches: {
+            total: response.totalWatches || 56,
+            increase: 15,
+          },
+          participation: {
+            rate: response.participationRate || 89,
+            increase: 2,
+          },
+        });
+      } catch (error) {
+        console.error("Lỗi khi lấy thống kê:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
+  const formatNumber = (num) => {
+    return num.toLocaleString("vi-VN");
+  };
+
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       <StatsCard
         title="Tổng người dùng"
-        value="13,456"
-        description="Tăng 12% so với tháng trước"
+        value={loading ? "Đang tải..." : formatNumber(stats.users.total)}
+        description={`Tăng ${stats.users.increase}% so với tháng trước`}
         icon={<Users className="h-4 w-4 text-muted-foreground" />}
       />
       <StatsCard
         title="Khóa học"
-        value="245"
-        description="Tăng 8% so với tháng trước"
+        value={loading ? "Đang tải..." : formatNumber(stats.courses.total)}
+        description={`Tăng ${stats.courses.increase}% so với tháng trước`}
         icon={<BookOpen className="h-4 w-4 text-muted-foreground" />}
       />
       <StatsCard
         title="Buổi học trực tuyến"
-        value="56"
-        description="Tăng 15% so với tháng trước"
+        value={loading ? "Đang tải..." : formatNumber(stats.watches.total)}
+        description={`Tăng ${stats.watches.increase}% so với tháng trước`}
         icon={<Presentation className="h-4 w-4 text-muted-foreground" />}
       />
       <StatsCard
         title="Tỷ lệ tham gia"
-        value="89%"
-        description="Tăng 2% so với tháng trước"
+        value={loading ? "Đang tải..." : `${stats.participation.rate}%`}
+        description={`Tăng ${stats.participation.increase}% so với tháng trước`}
         icon={<Activity className="h-4 w-4 text-muted-foreground" />}
       />
     </div>
-  )
+  );
 }
 
 function StatsCard({ title, value, description, icon }) {
@@ -46,5 +98,5 @@ function StatsCard({ title, value, description, icon }) {
         <p className="text-xs text-muted-foreground">{description}</p>
       </CardContent>
     </Card>
-  )
-} 
+  );
+}

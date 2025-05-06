@@ -1,193 +1,246 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Bar,
+  BarChart,
+  Legend,
+  LineChart,
+  Line,
+} from "recharts";
+import { useState, useEffect } from "react";
+import axios from "@/lib/axios";
 
-const data = [
-  { name: 'T1', total: 1200 },
-  { name: 'T2', total: 2400 },
-  { name: 'T3', total: 1800 },
-  { name: 'T4', total: 3000 },
-  { name: 'T5', total: 2800 },
-  { name: 'T6', total: 4000 },
-  { name: 'T7', total: 3500 },
-  { name: 'T8', total: 3800 },
-  { name: 'T9', total: 4100 },
-  { name: 'T10', total: 4500 },
-  { name: 'T11', total: 4800 },
-  { name: 'T12', total: 5000 },
-]
+// Dữ liệu mẫu cho biểu đồ đăng ký theo ngày trong tháng hiện tại
+const dailyRegistrationData = Array.from({ length: 31 }, (_, i) => ({
+  name: `${i + 1}`,
+  value: Math.floor(Math.random() * 20) + 1,
+}));
 
-export function DashboardAreaChart() {
+// Dữ liệu mẫu cho biểu đồ đăng ký theo tháng trong năm
+const monthlyRegistrationData = [
+  { name: "T1", value: 120 },
+  { name: "T2", value: 180 },
+  { name: "T3", value: 150 },
+  { name: "T4", value: 200 },
+  { name: "T5", value: 250 },
+  { name: "T6", value: 300 },
+  { name: "T7", value: 280 },
+  { name: "T8", value: 320 },
+  { name: "T9", value: 350 },
+  { name: "T10", value: 400 },
+  { name: "T11", value: 420 },
+  { name: "T12", value: 450 },
+];
+
+export function MonthlyRegistrationsChart() {
+  const [data, setData] = useState(dailyRegistrationData);
+  const [loading, setLoading] = useState(true);
+  const [currentMonth, setCurrentMonth] = useState(
+    new Date().toLocaleString("vi-VN", { month: "long", year: "numeric" }),
+  );
+
+  // Fetch dữ liệu đăng ký người dùng theo ngày trong tháng hiện tại
+  useEffect(() => {
+    const fetchUserStats = async () => {
+      try {
+        const response = await axios.get("/api/admin/users/stats");
+        console.log("Dữ liệu đăng ký người dùng theo ngày:", response);
+
+        if (response && response.dailyData) {
+          setData(response.dailyData);
+        }
+      } catch (error) {
+        console.error("Lỗi khi lấy thống kê người dùng theo ngày:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserStats();
+  }, []);
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Tổng doanh thu</CardTitle>
-        <CardDescription>Biểu đồ doanh thu từng tháng trong năm</CardDescription>
+        <CardTitle>Đăng ký người dùng trong tháng hiện tại</CardTitle>
+        <CardDescription>
+          Thống kê số người dùng đăng ký mới theo ngày trong {currentMonth}
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="h-[300px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart
-              data={data}
-              margin={{
-                top: 10,
-                right: 30,
-                left: 0,
-                bottom: 0,
-              }}
-            >
-              <defs>
-                <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#0284c7" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="#0284c7" stopOpacity={0}/>
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="name" className="text-sm" />
-              <YAxis className="text-sm" />
-              <Tooltip
-                content={({ active, payload }) => {
-                  if (active && payload && payload.length) {
-                    return (
-                      <div className="rounded-lg border bg-background p-2 shadow-sm">
-                        <div className="grid grid-cols-2 gap-2">
-                          <div className="flex flex-col">
-                            <span className="text-sm text-muted-foreground">
-                              Tháng
-                            </span>
-                            <span className="font-bold text-foreground">
-                              {payload[0].payload.name}
-                            </span>
-                          </div>
-                          <div className="flex flex-col">
-                            <span className="text-sm text-muted-foreground">
-                              Doanh thu
-                            </span>
-                            <span className="font-bold text-foreground">
-                              {new Intl.NumberFormat('vi-VN', {
-                                style: 'currency',
-                                currency: 'VND',
-                              }).format(payload[0].value)}
-                            </span>
+          {loading ? (
+            <div className="h-full w-full flex items-center justify-center">
+              <p className="text-muted-foreground">Đang tải dữ liệu...</p>
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={data}
+                margin={{
+                  top: 10,
+                  right: 30,
+                  left: 0,
+                  bottom: 0,
+                }}
+                barSize={20}
+              >
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="name" className="text-sm" />
+                <YAxis className="text-sm" />
+                <Tooltip
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      return (
+                        <div className="rounded-lg border bg-background p-2 shadow-sm">
+                          <div className="grid gap-2">
+                            <div className="flex flex-col">
+                              <span className="text-sm text-muted-foreground">
+                                Ngày
+                              </span>
+                              <span className="font-bold text-foreground">
+                                {payload[0].payload.name}
+                              </span>
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="text-sm text-muted-foreground">
+                                Số người đăng ký
+                              </span>
+                              <span className="font-bold text-primary">
+                                {payload[0].value} người dùng
+                              </span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    )
-                  }
-                  return null
-                }}
-              />
-              <Area
-                type="monotone"
-                dataKey="total"
-                stroke="#0284c7"
-                fillOpacity={1}
-                fill="url(#colorTotal)"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <Bar
+                  dataKey="value"
+                  name="Số người đăng ký"
+                  fill="#0284c7"
+                  radius={[4, 4, 0, 0]}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
 
-const barData = [
-  {
-    name: 'T7',
-    total: 540,
-  },
-  {
-    name: 'T8',
-    total: 620,
-  },
-  {
-    name: 'T9',
-    total: 860,
-  },
-  {
-    name: 'T10',
-    total: 950,
-  },
-  {
-    name: 'T11',
-    total: 1100,
-  },
-  {
-    name: 'T12',
-    total: 1430,
-  },
-]
+export function YearlyRegistrationsChart() {
+  const [data, setData] = useState(monthlyRegistrationData);
+  const [loading, setLoading] = useState(true);
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
 
-export function DashboardBarChart() {
+  // Fetch dữ liệu đăng ký người dùng theo tháng trong năm
+  useEffect(() => {
+    const fetchUserStats = async () => {
+      try {
+        const response = await axios.get("/api/admin/users/stats");
+        console.log("Dữ liệu đăng ký người dùng theo tháng:", response);
+
+        if (response && response.monthlyData) {
+          setData(response.monthlyData);
+        }
+      } catch (error) {
+        console.error("Lỗi khi lấy thống kê người dùng theo tháng:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserStats();
+  }, []);
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Số người dùng mới</CardTitle>
-        <CardDescription>Số lượng người đăng ký mới theo tháng</CardDescription>
+        <CardTitle>Đăng ký người dùng theo tháng</CardTitle>
+        <CardDescription>
+          Thống kê số người dùng đăng ký mới trong từng tháng của năm{" "}
+          {currentYear}
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="h-[300px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart
-              data={barData}
-              margin={{
-                top: 10,
-                right: 30,
-                left: 0,
-                bottom: 0,
-              }}
-            >
-              <defs>
-                <linearGradient id="colorTotal2" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#16a34a" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="#16a34a" stopOpacity={0}/>
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="name" className="text-sm" />
-              <YAxis className="text-sm" />
-              <Tooltip
-                content={({ active, payload }) => {
-                  if (active && payload && payload.length) {
-                    return (
-                      <div className="rounded-lg border bg-background p-2 shadow-sm">
-                        <div className="grid grid-cols-2 gap-2">
-                          <div className="flex flex-col">
-                            <span className="text-sm text-muted-foreground">
-                              Tháng
-                            </span>
-                            <span className="font-bold text-foreground">
-                              {payload[0].payload.name}
-                            </span>
-                          </div>
-                          <div className="flex flex-col">
-                            <span className="text-sm text-muted-foreground">
-                              Người dùng mới
-                            </span>
-                            <span className="font-bold text-foreground">
-                              {payload[0].value}
-                            </span>
+          {loading ? (
+            <div className="h-full w-full flex items-center justify-center">
+              <p className="text-muted-foreground">Đang tải dữ liệu...</p>
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={data}
+                margin={{
+                  top: 10,
+                  right: 30,
+                  left: 0,
+                  bottom: 0,
+                }}
+                barSize={30}
+              >
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="name" className="text-sm" />
+                <YAxis className="text-sm" />
+                <Tooltip
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      return (
+                        <div className="rounded-lg border bg-background p-2 shadow-sm">
+                          <div className="grid gap-2">
+                            <div className="flex flex-col">
+                              <span className="text-sm text-muted-foreground">
+                                Tháng
+                              </span>
+                              <span className="font-bold text-foreground">
+                                {payload[0].payload.name}
+                              </span>
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="text-sm text-muted-foreground">
+                                Số người đăng ký
+                              </span>
+                              <span className="font-bold text-emerald-600">
+                                {payload[0].value} người dùng
+                              </span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    )
-                  }
-                  return null
-                }}
-              />
-              <Area
-                type="monotone"
-                dataKey="total"
-                stroke="#16a34a"
-                fillOpacity={1}
-                fill="url(#colorTotal2)"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <Bar
+                  dataKey="value"
+                  name="Đăng ký trong tháng"
+                  fill="#16a34a"
+                  radius={[4, 4, 0, 0]}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
         </div>
       </CardContent>
     </Card>
-  )
-} 
+  );
+}

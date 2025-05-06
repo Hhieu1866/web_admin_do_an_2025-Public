@@ -1,16 +1,35 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { CalendarDays, CheckCircle, Clock, Code, Hourglass } from "lucide-react"
-import { Progress } from "@/components/ui/progress"
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
+import {
+  CalendarDays,
+  CheckCircle,
+  Clock,
+  Code,
+  Hourglass,
+} from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 
 export function MetricsCard() {
   return (
     <Card>
       <CardHeader>
         <CardTitle>Tổng quan hiệu suất</CardTitle>
-        <CardDescription>Các chỉ số hiệu suất chính của hệ thống</CardDescription>
+        <CardDescription>
+          Các chỉ số hiệu suất chính của hệ thống
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="today">
@@ -100,7 +119,7 @@ export function MetricsCard() {
         </Tabs>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 function MetricItem({ icon, title, value, change, positive, progress }) {
@@ -112,7 +131,11 @@ function MetricItem({ icon, title, value, change, positive, progress }) {
       <div className="flex-1 space-y-1">
         <div className="flex items-center">
           <p className="text-sm font-medium leading-none">{title}</p>
-          <div className={`ml-auto text-sm font-medium ${positive ? 'text-green-600' : 'text-red-600'}`}>
+          <div
+            className={`ml-auto text-sm font-medium ${
+              positive ? "text-green-600" : "text-red-600"
+            }`}
+          >
             {change}
           </div>
         </div>
@@ -122,5 +145,5 @@ function MetricItem({ icon, title, value, change, positive, progress }) {
         </div>
       </div>
     </div>
-  )
-} 
+  );
+}
