@@ -4,44 +4,28 @@ import { NextResponse } from "next/server";
 import { PUBLIC_ROUTES, LOGIN, ROOT } from "@/lib/routes";
 import { corsHeaders, preflightHeaders } from "@/lib/cors";
 
-const { auth } = NextAuth(authConfig);
+export async function middleware(request) {
+  const { nextUrl } = request;
 
-// Middleware xử lý CORS cho API routes
-function corsMiddleware(req) {
-  const { nextUrl } = req;
-
-  // Chỉ áp dụng CORS cho các API routes
+  // Handle CORS for API routes
   if (nextUrl.pathname.startsWith("/api/")) {
-    // Xử lý CORS preflight (OPTIONS request)
-    if (req.method === "OPTIONS") {
+    if (request.method === "OPTIONS") {
       return new NextResponse(null, {
         status: 200,
         headers: preflightHeaders,
       });
     }
 
-    // Thêm CORS headers vào response
     const response = NextResponse.next();
     Object.entries(corsHeaders).forEach(([key, value]) => {
       response.headers.set(key, value);
     });
-
     return response;
   }
 
-  // Không phải API route, tiếp tục xử lý bình thường
-  return null;
-}
-
-export default auth((req) => {
-  const { nextUrl } = req;
-
-  // Xử lý CORS trước
-  const corsResponse = corsMiddleware(req);
-  if (corsResponse) return corsResponse;
-
-  // Xử lý authentication
-  const isAuthenticated = !!req.auth;
+  // Auth middleware
+  const auth = await NextAuth(authConfig).auth(request);
+  const isAuthenticated = !!auth;
 
   const isPublicRoute =
     PUBLIC_ROUTES.some((route) => nextUrl.pathname.startsWith(route)) ||
@@ -50,13 +34,14 @@ export default auth((req) => {
   if (!isAuthenticated && !isPublicRoute) {
     return NextResponse.redirect(new URL(LOGIN, nextUrl));
   }
+
   return NextResponse.next();
-});
+}
 
 export const config = {
   matcher: [
-    "/((?!api/auth|_next|favicon.ico|.*\\..*).*)", // Loại trừ NextAuth và các route nội bộ của Next.js
-    "/api/:path*", // Thêm tất cả API routes để xử lý CORS
-    "/", // Bao gồm route gốc
+    "/((?!api/auth|_next|favicon.ico|.*\\..*).*)",
+    "/api/:path*",
+    "/",
   ],
 };
