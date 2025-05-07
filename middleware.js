@@ -1,5 +1,4 @@
-import NextAuth from "next-auth";
-import { authConfig } from "./auth.config";
+import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import { PUBLIC_ROUTES, LOGIN, ROOT } from "@/lib/routes";
 
@@ -7,8 +6,8 @@ export async function middleware(request) {
   const { nextUrl } = request;
 
   // Auth middleware
-  const auth = await NextAuth(authConfig).auth(request);
-  const isAuthenticated = !!auth;
+  const session = await auth();
+  const isAuthenticated = !!session?.user;
 
   const isPublicRoute =
     PUBLIC_ROUTES.some((route) => nextUrl.pathname.startsWith(route)) ||

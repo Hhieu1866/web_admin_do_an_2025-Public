@@ -7,6 +7,9 @@ import { authConfig } from "./auth.config";
 const nextAuthConfig = {
   ...authConfig,
   debug: true,
+  secret:
+    process.env.NEXTAUTH_SECRET ||
+    "VtVbgX5NsmpuyqPQ1y2EAeQaNBk6wPeqVAYMOirN5c",
   providers: [
     CredentialsProvider({
       name: "credentials",
