@@ -1,15 +1,15 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { toast } from "sonner";
 import axios from "@/lib/axios";
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
   CardTitle,
-  CardFooter 
+  CardFooter,
 } from "@/components/ui/card";
 import {
   Select,
@@ -28,13 +28,13 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { 
-  Search, 
-  User, 
-  UserCog, 
-  ChevronLeft, 
-  ChevronRight, 
-  Shield, 
+import {
+  Search,
+  User,
+  UserCog,
+  ChevronLeft,
+  ChevronRight,
+  Shield,
   BadgeCheck,
   MoreHorizontal,
   UserPlus,
@@ -46,7 +46,7 @@ import {
   ChevronDown,
   Check,
   RefreshCw,
-  Filter
+  Filter,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -74,13 +74,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { 
-  Pagination, 
-  PaginationContent, 
-  PaginationItem, 
-  PaginationLink, 
-  PaginationNext, 
-  PaginationPrevious 
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
 } from "@/components/ui/pagination";
 import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
@@ -108,7 +108,7 @@ export default function UsersPage() {
     password: "",
     firstName: "",
     lastName: "",
-    role: "user"
+    role: "student",
   });
   const [editFormData, setEditFormData] = useState({
     firstName: "",
@@ -116,11 +116,33 @@ export default function UsersPage() {
     email: "",
   });
 
-  const userRoles = [
-    { value: "admin", label: "Admin", icon: Shield },
-    { value: "instructor", label: "Giảng viên", icon: BadgeCheck },
-    { value: "user", label: "Người dùng", icon: User },
-  ];
+  // Memoize các hàm và dữ liệu không thay đổi thường xuyên
+  const userRoles = useMemo(
+    () => [
+      { value: "admin", label: "Admin", icon: Shield },
+      { value: "instructor", label: "Giảng viên", icon: BadgeCheck },
+      { value: "student", label: "Học viên", icon: User },
+    ],
+    [],
+  );
+
+  // Thêm tham chiếu để theo dõi các timeout hiện có
+  const timeoutRefs = useRef([]);
+
+  // Hàm tiện ích để tạo timeout có thể quản lý
+  const createManagedTimeout = useCallback((callback, delay) => {
+    const id = setTimeout(callback, delay);
+    timeoutRefs.current.push(id);
+    return id;
+  }, []);
+
+  // Hàm tiện ích để xóa một timeout cụ thể
+  const clearManagedTimeout = useCallback((id) => {
+    clearTimeout(id);
+    timeoutRefs.current = timeoutRefs.current.filter(
+      (timeoutId) => timeoutId !== id,
+    );
+  }, []);
 
   // Tạo hàm xử lý cả id và _id trong callback
   const handleRoleChangeCallback = useCallback((userId, newRole) => {
@@ -130,48 +152,77 @@ export default function UsersPage() {
   }, []);
 
   // Tạo hàm tiện ích để lấy user ID một cách nhất quán
-  const getUserId = (user) => {
+  const getUserId = useCallback((user) => {
     // Thứ tự ưu tiên: user._id, user.id, hoặc undefined nếu không có cả hai
     return user?._id || user?.id;
-  };
+  }, []);
 
-  // Hàm fetch dữ liệu người dùng từ API
-  const fetchUsers = async (currentPage = page, searchTerm = search, role = roleFilter) => {
-    try {
-      setLoading(true);
-      
-      const params = {
-        page: currentPage.toString(),
-        limit: "10"
-      };
-      
-      if (searchTerm) {
-        params.search = searchTerm;
-      }
-      
-      if (role && role !== "all") {
-        params.role = role;
-      }
-      
-      console.log("Fetching users with params:", params);
-      
-      const data = await axios.get("/api/admin/users", { params });
-      console.log("Fetched users data:", data);
-      
-      setUsers(data.users || []);
-      setTotalPages(data.totalPages || 1);
-      setTotalItems(data.total || 0);
-      setPage(currentPage);
-    } catch (error) {
-      console.error("Lỗi khi tải danh sách người dùng:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Hàm fetch dữ liệu người dùng từ API có useCallback
+  const fetchUsers = useCallback(
+    async (currentPage = page, searchTerm = search, role = roleFilter) => {
+      // Chỉ hiển thị trạng thái loading nếu không có dữ liệu hoặc bắt đầu tải trang mới
+      const shouldShowFullLoading = users.length === 0;
 
-  // Lắng nghe thay đổi của page
+      try {
+        if (shouldShowFullLoading) {
+          setLoading(true);
+        }
+
+        const params = {
+          page: currentPage.toString(),
+          limit: "10",
+        };
+
+        if (searchTerm) {
+          params.search = searchTerm;
+        }
+
+        if (role && role !== "all") {
+          params.role = role;
+        }
+
+        console.log("Fetching users with params:", params);
+
+        // Thêm timeout để tránh UI flickering khi dữ liệu tải nhanh
+        const timeoutPromise = new Promise((resolve) =>
+          setTimeout(resolve, 300),
+        );
+        const [data] = await Promise.all([
+          axios.get("/api/admin/users", { params }),
+          shouldShowFullLoading ? timeoutPromise : Promise.resolve(),
+        ]);
+
+        console.log("Fetched users data:", data);
+
+        // Cập nhật state theo thứ tự để tránh render lại nhiều lần
+        setUsers(data.users || []);
+        setTotalPages(data.totalPages || 1);
+        setTotalItems(data.total || 0);
+        setPage(currentPage);
+      } catch (error) {
+        console.error("Lỗi khi tải danh sách người dùng:", error);
+        toast.error(
+          "Không thể tải danh sách người dùng: " +
+            (error.response?.data?.error || error.message),
+        );
+      } finally {
+        setLoading(false);
+      }
+    },
+    [page, search, roleFilter, users.length],
+  );
+
+  // Lắng nghe thay đổi của page - khởi tạo dữ liệu ban đầu
   useEffect(() => {
     fetchUsers();
+  }, [fetchUsers]);
+
+  // Xóa tất cả timeout khi component unmount
+  useEffect(() => {
+    return () => {
+      timeoutRefs.current.forEach((id) => clearTimeout(id));
+      timeoutRefs.current = [];
+    };
   }, []);
 
   // Xử lý tìm kiếm
@@ -221,30 +272,26 @@ export default function UsersPage() {
       userId,
       userIdType: typeof userId,
       userIdLength: userId ? userId.length : 0,
-      newRole
+      newRole,
     });
-    
+
     // Đảm bảo có userId và log chi tiết nếu không có
     if (!userId) {
-      console.error("CRITICAL: Không thể xác định userId - Giá trị nhận được:", userId);
-      setTimeout(() => toast.error("Không thể xác định người dùng để cập nhật"), 0);
+      console.error(
+        "CRITICAL: Không thể xác định userId - Giá trị nhận được:",
+        userId,
+      );
+      toast.error("Không thể xác định người dùng để cập nhật");
       return;
     }
-    
-    // Tạo một biến để lưu toast ID bên ngoài setTimeout
-    let toastId;
-    setTimeout(() => {
-      toastId = toast.loading("Đang cập nhật quyền người dùng...");
-    }, 0);
-    
+
+    // Tạo một biến để lưu toast ID
+    let toastId = toast.loading("Đang cập nhật quyền người dùng...");
+
     try {
       console.log("Gọi API với userId:", userId, "và newRole:", newRole);
-      
-      // Gọi API với axios
-      await axios.patch(`/api/admin/users/${userId}`, { role: newRole });
-      console.log("API trả về thành công");
-      
-      // Cập nhật UI trực tiếp - xử lý cả trường hợp id và _id
+
+      // Cập nhật UI trước khi gọi API để cải thiện trải nghiệm
       setUsers((prevUsers) =>
         prevUsers.map((user) => {
           // So sánh cả id và _id
@@ -253,26 +300,40 @@ export default function UsersPage() {
             return { ...user, role: newRole };
           }
           return user;
-        })
+        }),
       );
-      
-      // Thông báo thành công
-      setTimeout(() => {
-        if (toastId) toast.dismiss(toastId);
-        toast.success("Cập nhật quyền người dùng thành công");
-      }, 0);
-      
-      // Làm mới dữ liệu
-      fetchUsers(page, search, roleFilter);
+
+      // Gọi API với axios
+      await axios.patch(`/api/admin/users/${userId}`, { role: newRole });
+      console.log("API trả về thành công");
+
+      // Đóng thông báo loading
+      toast.dismiss(toastId);
+
+      // Hiển thị thông báo thành công
+      toast.success("Cập nhật quyền người dùng thành công");
+
+      // Đặt timeout nhỏ trước khi cập nhật danh sách để tránh đơ UI
+      createManagedTimeout(() => {
+        // Làm mới dữ liệu
+        fetchUsers(page, search, roleFilter);
+      }, 300);
     } catch (error) {
       console.error("Lỗi chi tiết khi cập nhật quyền:", error);
       console.error("Response data:", error.response?.data);
       console.error("Status code:", error.response?.status);
-      
-      // Đảm bảo dismiss toast cũng không được gọi trong quá trình render
-      setTimeout(() => {
-        if (toastId) toast.dismiss(toastId);
-      }, 0);
+
+      // Đóng thông báo loading
+      toast.dismiss(toastId);
+      toast.error(
+        "Lỗi khi cập nhật quyền: " +
+          (error.response?.data?.error || error.message),
+      );
+
+      // Tải lại dữ liệu để khôi phục UI về trạng thái server
+      createManagedTimeout(() => {
+        fetchUsers(page, search, roleFilter);
+      }, 300);
     }
   };
 
@@ -280,34 +341,40 @@ export default function UsersPage() {
   const handleSaveEdit = async (e) => {
     e.preventDefault();
     if (!currentUser) return;
-    
+
     const userId = getUserId(currentUser);
     if (!userId) {
-      setTimeout(() => toast.error("Không thể xác định người dùng để cập nhật"), 0);
+      toast.error("Không thể xác định người dùng để cập nhật");
       return;
     }
 
     setIsSubmitting(true);
-    let toastId;
-    setTimeout(() => {
-      toastId = toast.loading("Đang cập nhật thông tin người dùng...");
-    }, 0);
-    
-    try {      
+    let toastId = toast.loading("Đang cập nhật thông tin người dùng...");
+
+    try {
       await axios.patch(`/api/admin/users/${userId}`, editFormData);
 
-      // Cập nhật danh sách người dùng
-      fetchUsers();
+      // Đóng dialog
       setIsEditDialogOpen(false);
-      setTimeout(() => {
-        if (toastId) toast.dismiss(toastId);
-        toast.success("Cập nhật thông tin người dùng thành công");
-      }, 0);
+
+      // Đóng thông báo loading
+      toast.dismiss(toastId);
+
+      // Hiển thị thông báo thành công
+      toast.success("Cập nhật thông tin người dùng thành công");
+
+      // Đặt timeout nhỏ trước khi cập nhật danh sách để tránh đơ UI
+      createManagedTimeout(() => {
+        // Cập nhật danh sách người dùng
+        fetchUsers();
+      }, 300);
     } catch (error) {
       console.error("Lỗi khi cập nhật thông tin người dùng:", error);
-      setTimeout(() => {
-        if (toastId) toast.dismiss(toastId);
-      }, 0);
+      toast.dismiss(toastId);
+      toast.error(
+        "Lỗi khi cập nhật thông tin: " +
+          (error.response?.data?.error || error.message),
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -316,54 +383,73 @@ export default function UsersPage() {
   // Xử lý xóa người dùng
   const handleDeleteUser = async () => {
     if (!currentUser) return;
-    
+
     const userId = getUserId(currentUser);
     if (!userId) {
-      setTimeout(() => toast.error("Không thể xác định người dùng để xóa"), 0);
+      toast.error("Không thể xác định người dùng để xóa");
       return;
     }
 
+    // Lưu trữ thông tin của user cần xóa để khôi phục nếu cần
+    const userToDelete = { ...currentUser };
+
+    // Đóng dialog ngay lập tức
+    setIsDeleteOpen(false);
+
+    // Đánh dấu đang xử lý
     setIsSubmitting(true);
-    let toastId;
-    setTimeout(() => {
-      toastId = toast.loading("Đang xóa người dùng...");
-    }, 0);
-    
+
+    // Hiển thị thông báo đang xử lý
+    const toastId = toast.loading("Đang xóa người dùng...");
+
     try {
+      // Cập nhật UI ngay lập tức - xóa user khỏi danh sách trước khi hoàn tất API call
+      // Điều này giúp tạo cảm giác phản hồi nhanh cho người dùng
+      setUsers((prevUsers) =>
+        prevUsers.filter((user) => getUserId(user) !== userId),
+      );
+      setTotalItems((prev) => Math.max(0, prev - 1));
+
+      // Tiến hành gọi API xóa trên server
       await axios.delete(`/api/admin/users/${userId}`);
 
-      // Cập nhật danh sách người dùng sau khi xóa
-      fetchUsers();
-      setIsDeleteOpen(false);
-      setTimeout(() => {
-        if (toastId) toast.dismiss(toastId);
-        toast.success("Xóa người dùng thành công");
-      }, 0);
+      // Sau khi xóa thành công, hiển thị thông báo
+      toast.dismiss(toastId);
+      toast.success("Xóa người dùng thành công");
     } catch (error) {
+      // Nếu lỗi xảy ra, khôi phục lại danh sách user ban đầu
       console.error("Lỗi khi xóa người dùng:", error);
-      setTimeout(() => {
-        if (toastId) toast.dismiss(toastId);
-      }, 0);
+      toast.dismiss(toastId);
+      toast.error(
+        "Lỗi khi xóa người dùng: " +
+          (error.response?.data?.error || error.message),
+      );
+
+      // Tải lại danh sách từ server để đảm bảo dữ liệu đồng bộ
+      createManagedTimeout(() => {
+        fetchUsers(page, search, roleFilter);
+      }, 300);
     } finally {
+      // Đặt lại trạng thái xử lý
       setIsSubmitting(false);
+
+      // Ngắt mọi tham chiếu đến người dùng đã xóa
+      setCurrentUser(null);
     }
   };
 
   // Xử lý thêm người dùng mới
   const handleAddUser = async (e) => {
     e.preventDefault();
-    
+
     if (!newUser.email || !newUser.password) {
-      setTimeout(() => toast.error("Vui lòng điền đầy đủ thông tin bắt buộc"), 0);
+      toast.error("Vui lòng điền đầy đủ thông tin bắt buộc");
       return;
     }
 
     setIsSubmitting(true);
-    let toastId;
-    setTimeout(() => {
-      toastId = toast.loading("Đang tạo người dùng mới...");
-    }, 0);
-    
+    let toastId = toast.loading("Đang tạo người dùng mới...");
+
     try {
       await axios.post(`/api/admin/users`, newUser);
 
@@ -373,21 +459,30 @@ export default function UsersPage() {
         password: "",
         firstName: "",
         lastName: "",
-        role: "user" // Luôn reset về user
+        role: "user", // Luôn reset về user
       });
-      
-      // Cập nhật danh sách người dùng và đóng dialog
-      fetchUsers();
+
+      // Đóng dialog
       setIsAddUserOpen(false);
-      setTimeout(() => {
-        if (toastId) toast.dismiss(toastId);
-        toast.success("Tạo người dùng mới thành công");
-      }, 0);
+
+      // Đóng thông báo loading
+      toast.dismiss(toastId);
+
+      // Hiển thị thông báo thành công
+      toast.success("Tạo người dùng mới thành công");
+
+      // Đặt timeout nhỏ trước khi cập nhật danh sách để tránh đơ UI
+      createManagedTimeout(() => {
+        // Cập nhật danh sách người dùng
+        fetchUsers();
+      }, 300);
     } catch (error) {
       console.error("Lỗi khi tạo người dùng mới:", error);
-      setTimeout(() => {
-        if (toastId) toast.dismiss(toastId);
-      }, 0);
+      toast.dismiss(toastId);
+      toast.error(
+        "Lỗi khi tạo người dùng: " +
+          (error.response?.data?.error || error.message),
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -397,8 +492,8 @@ export default function UsersPage() {
   const getRoleBadge = (role) => {
     console.log("Hiển thị badge cho role:", role);
     // Tìm thông tin vai trò từ danh sách đã định nghĩa
-    const roleInfo = userRoles.find(r => r.value === role);
-    
+    const roleInfo = userRoles.find((r) => r.value === role);
+
     // Nếu không tìm thấy, hiển thị vai trò gốc trong database
     if (!roleInfo) {
       return (
@@ -407,7 +502,7 @@ export default function UsersPage() {
         </Badge>
       );
     }
-    
+
     // Sử dụng các variants khác nhau của Badge component
     if (role === "admin") {
       return (
@@ -416,7 +511,7 @@ export default function UsersPage() {
         </Badge>
       );
     }
-    
+
     if (role === "instructor") {
       return (
         <Badge variant="secondary" className="font-medium">
@@ -424,13 +519,160 @@ export default function UsersPage() {
         </Badge>
       );
     }
-    
+
     return (
       <Badge variant="outline" className="font-medium">
         {roleInfo.label}
       </Badge>
     );
   };
+
+  // Tối ưu render cho TableRow bằng cách tạo một component con
+  const UserTableRow = useCallback(
+    ({ user, index }) => {
+      const userId = getUserId(user);
+
+      return (
+        <TableRow
+          key={userId || `user-${index}`}
+          className="hover:bg-muted/30 cursor-pointer transition-colors group"
+        >
+          <TableCell className="pl-3 py-2.5">
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-9 rounded-full bg-primary/10 text-primary flex items-center justify-center overflow-hidden border border-primary/20 ring-4 ring-transparent group-hover:ring-primary/5 transition-all duration-200">
+                {user.profilePicture ? (
+                  <img
+                    src={user.profilePicture}
+                    alt={`${user.firstName} ${user.lastName}`}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <User className="h-4 w-4" />
+                )}
+              </div>
+              <div>
+                <div className="font-medium text-sm">
+                  {user.firstName && user.lastName
+                    ? `${user.firstName} ${user.lastName}`
+                    : "Chưa cập nhật"}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {user.designation || "Chưa có chức danh"}
+                </div>
+              </div>
+            </div>
+          </TableCell>
+          <TableCell className="font-medium text-sm py-2.5">
+            {user.email}
+          </TableCell>
+          <TableCell className="text-sm text-muted-foreground py-2.5">
+            {user.createdAt
+              ? format(new Date(user.createdAt), "dd/MM/yyyy")
+              : "Chưa có dữ liệu"}
+          </TableCell>
+          <TableCell>
+            <Select
+              value={user.role}
+              onValueChange={(value) => {
+                // Lấy userId từ hàm tiện ích
+                const userId = getUserId(user);
+
+                // Kiểm tra chi tiết về user và userId
+                if (!user) {
+                  console.error("Lỗi: user là null hoặc undefined");
+                } else if (!userId) {
+                  console.error("Lỗi: userId là null hoặc undefined", user);
+                } else {
+                  handleRoleChangeCallback(String(userId), value);
+                }
+              }}
+            >
+              <SelectTrigger
+                className={cn(
+                  "w-[120px] h-8 text-sm font-medium transition-colors",
+                  user.role === "admin"
+                    ? "bg-destructive/10 text-destructive border-destructive/20 hover:bg-destructive/20"
+                    : user.role === "instructor"
+                    ? "bg-secondary/20 text-secondary-foreground border-secondary/30 hover:bg-secondary/30"
+                    : "bg-muted text-muted-foreground border-muted-foreground/20 hover:bg-muted/70",
+                )}
+              >
+                <SelectValue>
+                  {(() => {
+                    const roleInfo = userRoles.find(
+                      (r) => r.value === user.role,
+                    ) || {
+                      label: user.role || "Không xác định",
+                    };
+                    return (
+                      <div className="flex items-center">{roleInfo.label}</div>
+                    );
+                  })()}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent align="center">
+                {userRoles.map((role) => (
+                  <SelectItem
+                    key={role.value}
+                    value={role.value}
+                    className="font-medium"
+                  >
+                    <div className="flex items-center">{role.label}</div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </TableCell>
+          <TableCell className="pr-3 text-right">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 rounded-full hover:bg-muted opacity-70 group-hover:opacity-100 transition-opacity"
+                >
+                  <span className="sr-only">Thao tác</span>
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem
+                  onClick={() => handleViewUser(user)}
+                  className="cursor-pointer"
+                >
+                  <Eye className="mr-2 h-4 w-4" />
+                  <span>Xem chi tiết</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => handleEditUser(user)}
+                  className="cursor-pointer"
+                >
+                  <Pencil className="mr-2 h-4 w-4" />
+                  <span>Chỉnh sửa</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="text-destructive focus:text-destructive cursor-pointer"
+                  onClick={() => handleDeleteDialog(user)}
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  <span>Xóa</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </TableCell>
+        </TableRow>
+      );
+    },
+    [
+      handleRoleChangeCallback,
+      handleViewUser,
+      handleEditUser,
+      handleDeleteDialog,
+      getUserId,
+      userRoles,
+    ],
+  );
 
   return (
     <div className="space-y-6 p-3 max-w-full">
@@ -444,8 +686,8 @@ export default function UsersPage() {
             Quản lý và phân quyền cho {totalItems} người dùng trong hệ thống
           </p>
         </div>
-        <Button 
-          onClick={() => setIsAddUserOpen(true)} 
+        <Button
+          onClick={() => setIsAddUserOpen(true)}
           className="h-10 px-4 gap-2 bg-primary text-white hover:bg-primary/90 self-start md:self-auto shadow-sm transition-all duration-200"
         >
           <UserPlus className="h-4 w-4" />
@@ -459,7 +701,9 @@ export default function UsersPage() {
           <Filter className="h-4 w-4 text-muted-foreground" />
           <div>
             <CardTitle className="text-base font-medium">Bộ lọc</CardTitle>
-            <CardDescription>Tìm kiếm và lọc danh sách người dùng</CardDescription>
+            <CardDescription>
+              Tìm kiếm và lọc danh sách người dùng
+            </CardDescription>
           </div>
         </CardHeader>
         <CardContent className="px-4 py-4 flex flex-col sm:flex-row gap-4">
@@ -474,9 +718,9 @@ export default function UsersPage() {
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
-            <Button 
-              type="submit" 
-              variant="secondary" 
+            <Button
+              type="submit"
+              variant="secondary"
               className="h-10 bg-secondary hover:bg-secondary/80 text-secondary-foreground shadow-sm transition-colors"
             >
               Tìm kiếm
@@ -496,9 +740,7 @@ export default function UsersPage() {
                 </SelectItem>
                 {userRoles.map((role) => (
                   <SelectItem key={role.value} value={role.value}>
-                    <div className="flex items-center">
-                      {role.label}
-                    </div>
+                    <div className="flex items-center">{role.label}</div>
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -513,13 +755,17 @@ export default function UsersPage() {
           <div className="flex items-center gap-2">
             <UserCog className="h-4 w-4 text-muted-foreground" />
             <div>
-              <CardTitle className="text-base font-medium">Danh sách người dùng</CardTitle>
+              <CardTitle className="text-base font-medium">
+                Danh sách người dùng
+              </CardTitle>
               <CardDescription>
-                {users.length > 0 ? `Hiển thị ${users.length} trên tổng số ${totalItems} người dùng` : 'Không có dữ liệu người dùng'}
+                {users.length > 0
+                  ? `Hiển thị ${users.length} trên tổng số ${totalItems} người dùng`
+                  : "Không có dữ liệu người dùng"}
               </CardDescription>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
@@ -537,17 +783,27 @@ export default function UsersPage() {
             </Button>
           </div>
         </CardHeader>
-        
+
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <Table className="w-full">
               <TableHeader>
                 <TableRow className="hover:bg-transparent border-b bg-muted/30">
-                  <TableHead className="font-medium text-xs uppercase tracking-wider text-muted-foreground w-[200px] pl-3 py-2.5">Người dùng</TableHead>
-                  <TableHead className="font-medium text-xs uppercase tracking-wider text-muted-foreground w-[28%] py-2.5">Email</TableHead>
-                  <TableHead className="font-medium text-xs uppercase tracking-wider text-muted-foreground w-[130px] py-2.5">Ngày tạo</TableHead>
-                  <TableHead className="font-medium text-xs uppercase tracking-wider text-muted-foreground w-[110px] py-2.5">Vai trò</TableHead>
-                  <TableHead className="text-right font-medium text-xs uppercase tracking-wider text-muted-foreground w-[70px] pr-3 py-2.5">Thao tác</TableHead>
+                  <TableHead className="font-medium text-xs uppercase tracking-wider text-muted-foreground w-[200px] pl-3 py-2.5">
+                    Người dùng
+                  </TableHead>
+                  <TableHead className="font-medium text-xs uppercase tracking-wider text-muted-foreground w-[28%] py-2.5">
+                    Email
+                  </TableHead>
+                  <TableHead className="font-medium text-xs uppercase tracking-wider text-muted-foreground w-[130px] py-2.5">
+                    Ngày tạo
+                  </TableHead>
+                  <TableHead className="font-medium text-xs uppercase tracking-wider text-muted-foreground w-[110px] py-2.5">
+                    Vai trò
+                  </TableHead>
+                  <TableHead className="text-right font-medium text-xs uppercase tracking-wider text-muted-foreground w-[70px] pr-3 py-2.5">
+                    Thao tác
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -567,159 +823,31 @@ export default function UsersPage() {
                         <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
                           <User className="h-6 w-6 stroke-1" />
                         </div>
-                        <p className="font-medium">Không tìm thấy người dùng</p>
-                        <p className="text-sm text-center max-w-md">
-                          Không có người dùng nào phù hợp với bộ lọc hiện tại. Thử thay đổi từ khóa tìm kiếm hoặc bộ lọc.
+                        <p className="font-medium">
+                          Không tìm thấy người dùng
                         </p>
-                        <Button variant="outline" onClick={() => fetchUsers(1, "", "all")} className="mt-2 text-primary">
+                        <p className="text-sm text-center max-w-md">
+                          Không có người dùng nào phù hợp với bộ lọc hiện tại.
+                          Thử thay đổi từ khóa tìm kiếm hoặc bộ lọc.
+                        </p>
+                        <Button
+                          variant="outline"
+                          onClick={() => fetchUsers(1, "", "all")}
+                          className="mt-2 text-primary"
+                        >
                           Xóa bộ lọc và hiển thị tất cả
                         </Button>
                       </div>
                     </TableCell>
                   </TableRow>
                 ) : (
-                  users.map((user, index) => {
-                    // Get userId consistently
-                    const userId = getUserId(user);
-                    
-                    return (
-                      <TableRow 
-                        key={userId || `user-${index}`} 
-                        className="hover:bg-muted/30 cursor-pointer transition-colors group"
-                      >
-                        <TableCell className="pl-3 py-2.5">
-                          <div className="flex items-center gap-3">
-                            <div className="h-9 w-9 rounded-full bg-primary/10 text-primary flex items-center justify-center overflow-hidden border border-primary/20 ring-4 ring-transparent group-hover:ring-primary/5 transition-all duration-200">
-                              {user.profilePicture ? (
-                                <img 
-                                  src={user.profilePicture} 
-                                  alt={`${user.firstName} ${user.lastName}`}
-                                  className="h-full w-full object-cover"
-                                />
-                              ) : (
-                                <User className="h-4 w-4" />
-                              )}
-                            </div>
-                            <div>
-                              <div className="font-medium text-sm">
-                                {user.firstName && user.lastName 
-                                  ? `${user.firstName} ${user.lastName}`
-                                  : "Chưa cập nhật"
-                                }
-                              </div>
-                              <div className="text-xs text-muted-foreground">
-                                {user.designation || "Chưa có chức danh"}
-                              </div>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="font-medium text-sm py-2.5">{user.email}</TableCell>
-                        <TableCell className="text-sm text-muted-foreground py-2.5">
-                          {user.createdAt 
-                            ? format(new Date(user.createdAt), "dd/MM/yyyy")
-                            : "Chưa có dữ liệu"
-                          }
-                        </TableCell>
-                        <TableCell>
-                          <Select
-                            value={user.role}
-                            onValueChange={(value) => {
-                              console.log("Select onValueChange gọi với:", {
-                                userId: getUserId(user),
-                                userIdType: typeof getUserId(user),
-                                user_id: user?._id,
-                                user_id_type: typeof user?._id,
-                                user_id: user?.id,
-                                user_id_type: typeof user?.id,
-                                userObject: user,
-                                newRole: value
-                              });
-                              
-                              // Lấy userId từ hàm tiện ích
-                              const userId = getUserId(user);
-                              
-                              // Kiểm tra chi tiết về user và userId
-                              if (!user) {
-                                console.error("Lỗi: user là null hoặc undefined");
-                              } else if (!userId) {
-                                console.error("Lỗi: userId là null hoặc undefined", user);
-                              } else {
-                                console.log("Chuẩn bị gọi handleRoleChangeCallback với:", String(userId), value);
-                                handleRoleChangeCallback(String(userId), value);
-                              }
-                            }}
-                          >
-                            <SelectTrigger
-                              className={cn(
-                                "w-[120px] h-8 text-sm font-medium transition-colors",
-                                user.role === "admin"
-                                  ? "bg-destructive/10 text-destructive border-destructive/20 hover:bg-destructive/20"
-                                  : user.role === "instructor"
-                                  ? "bg-secondary/20 text-secondary-foreground border-secondary/30 hover:bg-secondary/30"
-                                  : "bg-muted text-muted-foreground border-muted-foreground/20 hover:bg-muted/70"
-                              )}
-                            >
-                              <SelectValue>
-                                {(() => {
-                                  const roleInfo = userRoles.find(r => r.value === user.role) || { label: user.role || "Không xác định" };
-                                  return (
-                                    <div className="flex items-center">
-                                      {roleInfo.label}
-                                    </div>
-                                  );
-                                })()}
-                              </SelectValue>
-                            </SelectTrigger>
-                            <SelectContent align="center">
-                              {userRoles.map((role) => (
-                                <SelectItem
-                                  key={role.value}
-                                  value={role.value}
-                                  className="font-medium"
-                                >
-                                  <div className="flex items-center">
-                                    {role.label}
-                                  </div>
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </TableCell>
-                        <TableCell className="pr-3 text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button 
-                                variant="ghost" 
-                                size="icon" 
-                                className="h-8 w-8 rounded-full hover:bg-muted opacity-70 group-hover:opacity-100 transition-opacity"
-                              >
-                                <span className="sr-only">Thao tác</span>
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-48">
-                              <DropdownMenuItem onClick={() => handleViewUser(user)} className="cursor-pointer">
-                                <Eye className="mr-2 h-4 w-4" />
-                                <span>Xem chi tiết</span>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleEditUser(user)} className="cursor-pointer">
-                                <Pencil className="mr-2 h-4 w-4" />
-                                <span>Chỉnh sửa</span>
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem 
-                                className="text-destructive focus:text-destructive cursor-pointer"
-                                onClick={() => handleDeleteDialog(user)}
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                <span>Xóa</span>
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })
+                  users.map((user, index) => (
+                    <UserTableRow
+                      key={getUserId(user) || index}
+                      user={user}
+                      index={index}
+                    />
+                  ))
                 )}
               </TableBody>
             </Table>
@@ -735,11 +863,13 @@ export default function UsersPage() {
                       onClick={() => handlePageChange(page - 1)}
                       className={cn(
                         "transition-opacity duration-200",
-                        page <= 1 ? "pointer-events-none opacity-50" : "cursor-pointer"
+                        page <= 1
+                          ? "pointer-events-none opacity-50"
+                          : "cursor-pointer",
                       )}
                     />
                   </PaginationItem>
-                  
+
                   {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                     const pageNumber = i + 1;
                     return (
@@ -754,11 +884,13 @@ export default function UsersPage() {
                       </PaginationItem>
                     );
                   })}
-                  
+
                   {totalPages > 5 && (
                     <React.Fragment key="pagination-ellipsis">
                       <PaginationItem>
-                        <div className="flex h-9 w-9 items-center justify-center">...</div>
+                        <div className="flex h-9 w-9 items-center justify-center">
+                          ...
+                        </div>
                       </PaginationItem>
                       <PaginationItem>
                         <PaginationLink
@@ -771,13 +903,15 @@ export default function UsersPage() {
                       </PaginationItem>
                     </React.Fragment>
                   )}
-                  
+
                   <PaginationItem>
                     <PaginationNext
                       onClick={() => handlePageChange(page + 1)}
                       className={cn(
                         "transition-opacity duration-200",
-                        page >= totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"
+                        page >= totalPages
+                          ? "pointer-events-none opacity-50"
+                          : "cursor-pointer",
                       )}
                     />
                   </PaginationItem>
@@ -808,8 +942,8 @@ export default function UsersPage() {
               <div className="flex flex-col items-center gap-3 pb-6 border-b">
                 <div className="h-24 w-24 rounded-full bg-primary/10 text-primary flex items-center justify-center overflow-hidden border-2 border-primary/20 shadow-sm">
                   {currentUser.profilePicture ? (
-                    <img 
-                      src={currentUser.profilePicture} 
+                    <img
+                      src={currentUser.profilePicture}
                       alt={`${currentUser.firstName} ${currentUser.lastName}`}
                       className="h-full w-full object-cover"
                     />
@@ -823,56 +957,77 @@ export default function UsersPage() {
                       ? `${currentUser.firstName} ${currentUser.lastName}`
                       : "Chưa cập nhật"}
                   </h3>
-                  <div className="mt-1">
-                    {getRoleBadge(currentUser.role)}
-                  </div>
+                  <div className="mt-1">{getRoleBadge(currentUser.role)}</div>
                 </div>
               </div>
-              
+
               {/* Thông tin chi tiết */}
               <div className="space-y-4">
                 <div className="bg-muted/40 rounded-lg p-4">
-                  <h4 className="text-sm font-medium text-muted-foreground mb-3">Thông tin cơ bản</h4>
-                  
+                  <h4 className="text-sm font-medium text-muted-foreground mb-3">
+                    Thông tin cơ bản
+                  </h4>
+
                   <div className="space-y-3">
                     <div className="grid grid-cols-3 items-center gap-4">
-                      <span className="text-sm font-medium text-muted-foreground">ID:</span>
-                      <span className="col-span-2 text-sm break-all font-mono bg-muted p-1.5 rounded">{currentUser._id}</span>
+                      <span className="text-sm font-medium text-muted-foreground">
+                        ID:
+                      </span>
+                      <span className="col-span-2 text-sm break-all font-mono bg-muted p-1.5 rounded">
+                        {currentUser._id}
+                      </span>
                     </div>
-                    
+
                     <div className="grid grid-cols-3 items-center gap-4">
-                      <span className="text-sm font-medium text-muted-foreground">Email:</span>
-                      <span className="col-span-2 text-sm font-medium">{currentUser.email}</span>
+                      <span className="text-sm font-medium text-muted-foreground">
+                        Email:
+                      </span>
+                      <span className="col-span-2 text-sm font-medium">
+                        {currentUser.email}
+                      </span>
                     </div>
-                    
+
                     <div className="grid grid-cols-3 items-center gap-4">
-                      <span className="text-sm font-medium text-muted-foreground">Chức danh:</span>
+                      <span className="text-sm font-medium text-muted-foreground">
+                        Chức danh:
+                      </span>
                       <span className="col-span-2 text-sm">
                         {currentUser.designation || "Chưa cập nhật"}
                       </span>
                     </div>
-                    
+
                     {currentUser.phone && (
                       <div className="grid grid-cols-3 items-center gap-4">
-                        <span className="text-sm font-medium text-muted-foreground">Số điện thoại:</span>
-                        <span className="col-span-2 text-sm">{currentUser.phone}</span>
+                        <span className="text-sm font-medium text-muted-foreground">
+                          Số điện thoại:
+                        </span>
+                        <span className="col-span-2 text-sm">
+                          {currentUser.phone}
+                        </span>
                       </div>
                     )}
-                    
+
                     <div className="grid grid-cols-3 items-center gap-4">
-                      <span className="text-sm font-medium text-muted-foreground">Ngày tạo:</span>
+                      <span className="text-sm font-medium text-muted-foreground">
+                        Ngày tạo:
+                      </span>
                       <span className="col-span-2 text-sm">
-                        {currentUser.createdAt 
-                          ? format(new Date(currentUser.createdAt), "dd/MM/yyyy HH:mm:ss") 
+                        {currentUser.createdAt
+                          ? format(
+                              new Date(currentUser.createdAt),
+                              "dd/MM/yyyy HH:mm:ss",
+                            )
                           : "Chưa có dữ liệu"}
                       </span>
                     </div>
                   </div>
                 </div>
-                
+
                 {currentUser.bio && (
                   <div className="bg-muted/40 rounded-lg p-4">
-                    <h4 className="text-sm font-medium text-muted-foreground mb-3">Tiểu sử</h4>
+                    <h4 className="text-sm font-medium text-muted-foreground mb-3">
+                      Tiểu sử
+                    </h4>
                     <div className="text-sm whitespace-pre-line bg-background p-3 rounded border">
                       {currentUser.bio}
                     </div>
@@ -881,9 +1036,9 @@ export default function UsersPage() {
               </div>
             </div>
             <DialogFooter className="flex justify-between border-t pt-4 px-2 gap-2">
-              <Button 
-                onClick={() => handleEditUser(currentUser)} 
-                variant="outline" 
+              <Button
+                onClick={() => handleEditUser(currentUser)}
+                variant="outline"
                 className="gap-1.5"
               >
                 <Pencil className="h-4 w-4" />
@@ -907,7 +1062,8 @@ export default function UsersPage() {
                 Chỉnh sửa thông tin
               </DialogTitle>
               <DialogDescription>
-                Cập nhật thông tin cho người dùng <span className="font-medium">{currentUser.email}</span>
+                Cập nhật thông tin cho người dùng{" "}
+                <span className="font-medium">{currentUser.email}</span>
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSaveEdit} className="space-y-5 py-6 px-2">
@@ -922,52 +1078,75 @@ export default function UsersPage() {
                       type="email"
                       className="border-input/60 focus-visible:ring-primary"
                       value={editFormData.email}
-                      onChange={(e) => setEditFormData({...editFormData, email: e.target.value})}
+                      onChange={(e) =>
+                        setEditFormData({
+                          ...editFormData,
+                          email: e.target.value,
+                        })
+                      }
                       required
                     />
-                    <p className="text-xs text-muted-foreground mt-1">Email dùng để đăng nhập</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Email dùng để đăng nhập
+                    </p>
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="edit-firstName" className="text-right text-sm">
+                  <Label
+                    htmlFor="edit-firstName"
+                    className="text-right text-sm"
+                  >
                     Họ
                   </Label>
                   <Input
                     id="edit-firstName"
                     className="col-span-3 border-input/60 focus-visible:ring-primary"
                     value={editFormData.firstName}
-                    onChange={(e) => setEditFormData({...editFormData, firstName: e.target.value})}
+                    onChange={(e) =>
+                      setEditFormData({
+                        ...editFormData,
+                        firstName: e.target.value,
+                      })
+                    }
                     placeholder="Nguyễn"
                   />
                 </div>
-                
+
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="edit-lastName" className="text-right text-sm">
+                  <Label
+                    htmlFor="edit-lastName"
+                    className="text-right text-sm"
+                  >
                     Tên
                   </Label>
                   <Input
                     id="edit-lastName"
                     className="col-span-3 border-input/60 focus-visible:ring-primary"
                     value={editFormData.lastName}
-                    onChange={(e) => setEditFormData({...editFormData, lastName: e.target.value})}
+                    onChange={(e) =>
+                      setEditFormData({
+                        ...editFormData,
+                        lastName: e.target.value,
+                      })
+                    }
                     placeholder="Văn A"
                   />
                 </div>
               </div>
-              
+
               <DialogFooter className="pt-4 border-t flex justify-between px-2">
-                <Button 
-                  type="button" 
-                  variant="outline" 
+                <Button
+                  type="button"
+                  variant="outline"
                   onClick={() => setIsEditDialogOpen(false)}
                   className="relative px-4"
                 >
                   Hủy
                 </Button>
-                <Button 
-                  type="submit" 
-                  disabled={isSubmitting} 
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
                   className="gap-2 relative px-4"
                 >
                   {isSubmitting ? (
@@ -1001,11 +1180,13 @@ export default function UsersPage() {
               </AlertDialogTitle>
               <AlertDialogDescription className="space-y-3 pt-2">
                 <p>
-                  Bạn có chắc chắn muốn xóa người dùng <span className="font-medium">{currentUser.email}</span>?
+                  Bạn có chắc chắn muốn xóa người dùng{" "}
+                  <span className="font-medium">{currentUser.email}</span>?
                 </p>
                 <div className="bg-destructive/10 border border-destructive/20 text-destructive rounded-md p-3 text-sm mt-3">
                   <AlertTriangle className="h-4 w-4 inline-block mr-2" />
-                  Hành động này không thể hoàn tác và sẽ xóa tất cả dữ liệu liên quan đến người dùng này.
+                  Hành động này không thể hoàn tác và sẽ xóa tất cả dữ liệu
+                  liên quan đến người dùng này.
                 </div>
               </AlertDialogDescription>
             </AlertDialogHeader>
@@ -1060,13 +1241,17 @@ export default function UsersPage() {
                     placeholder="user@example.com"
                     className="border-input/60 focus-visible:ring-primary"
                     value={newUser.email}
-                    onChange={(e) => setNewUser({...newUser, email: e.target.value})}
+                    onChange={(e) =>
+                      setNewUser({ ...newUser, email: e.target.value })
+                    }
                     required
                   />
-                  <p className="text-xs text-muted-foreground mt-1">Email dùng để đăng nhập</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Email dùng để đăng nhập
+                  </p>
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="password" className="text-right text-sm">
                   Mật khẩu <span className="text-destructive">*</span>
@@ -1078,13 +1263,17 @@ export default function UsersPage() {
                     placeholder="••••••••"
                     className="border-input/60 focus-visible:ring-primary"
                     value={newUser.password}
-                    onChange={(e) => setNewUser({...newUser, password: e.target.value})}
+                    onChange={(e) =>
+                      setNewUser({ ...newUser, password: e.target.value })
+                    }
                     required
                   />
-                  <p className="text-xs text-muted-foreground mt-1">Tối thiểu 8 ký tự</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Tối thiểu 8 ký tự
+                  </p>
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="role" className="text-right text-sm">
                   Vai trò <span className="text-destructive">*</span>
@@ -1092,7 +1281,9 @@ export default function UsersPage() {
                 <div className="col-span-3">
                   <Select
                     value={newUser.role}
-                    onValueChange={(value) => setNewUser({...newUser, role: value})}
+                    onValueChange={(value) =>
+                      setNewUser({ ...newUser, role: value })
+                    }
                   >
                     <SelectTrigger className="border-input/60 focus-visible:ring-primary">
                       <SelectValue placeholder="Chọn vai trò" />
@@ -1104,16 +1295,14 @@ export default function UsersPage() {
                           value={role.value}
                           className="font-medium"
                         >
-                          <div className="flex items-center">
-                            {role.label}
-                          </div>
+                          <div className="flex items-center">{role.label}</div>
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-4 items-start gap-4 pt-2">
                 <Label htmlFor="name" className="text-right text-sm pt-2">
                   Họ và tên
@@ -1124,21 +1313,29 @@ export default function UsersPage() {
                     placeholder="Họ (VD: Nguyễn)"
                     className="border-input/60 focus-visible:ring-primary"
                     value={newUser.firstName}
-                    onChange={(e) => setNewUser({...newUser, firstName: e.target.value})}
+                    onChange={(e) =>
+                      setNewUser({ ...newUser, firstName: e.target.value })
+                    }
                   />
                   <Input
                     id="lastName"
                     placeholder="Tên (VD: Văn A)"
                     className="border-input/60 focus-visible:ring-primary"
                     value={newUser.lastName}
-                    onChange={(e) => setNewUser({...newUser, lastName: e.target.value})}
+                    onChange={(e) =>
+                      setNewUser({ ...newUser, lastName: e.target.value })
+                    }
                   />
                 </div>
               </div>
             </div>
-            
+
             <DialogFooter className="pt-4 border-t flex justify-between px-2">
-              <Button type="button" variant="outline" onClick={() => setIsAddUserOpen(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsAddUserOpen(false)}
+              >
                 Hủy
               </Button>
               <Button type="submit" disabled={isSubmitting} className="gap-2">
@@ -1160,4 +1357,4 @@ export default function UsersPage() {
       </Dialog>
     </div>
   );
-} 
+}

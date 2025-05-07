@@ -9,7 +9,8 @@ import { getLoggedInUser } from "@/lib/loggedin-user";
 import { redirect } from "next/navigation";
 import { hasEnrollmentForCourse } from "@/queries/enrollments";
 
-const CourseLayout = async ({ children, params: { id } }) => {
+const CourseLayout = async ({ children, params }) => {
+  const id = params.id;
   const loggedinUser = await getLoggedInUser();
   if (!loggedinUser) {
     redirect("/login");

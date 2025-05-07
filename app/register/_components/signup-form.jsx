@@ -105,8 +105,8 @@ export function SignupForm() {
         return;
       }
 
-      // Mặc định role là user (không còn phân biệt student/instructor)
-      const userRole = "user";
+      // Mặc định role là student
+      const userRole = "student";
 
       const response = await fetch("/api/register", {
         method: "POST",

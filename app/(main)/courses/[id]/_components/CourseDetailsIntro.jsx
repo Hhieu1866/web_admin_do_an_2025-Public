@@ -54,7 +54,7 @@ const CourseDetailsIntro = async ({ course }) => {
                     href={`/courses/${course?.id}/lesson`}
                     className={cn(buttonVariants({ size: "lg" }))}
                   >
-                    Access Course
+                    Vào học ngay
                   </Link>
                 ) : (
                   <EnrollCourse courseId={course?.id} />
@@ -91,7 +91,7 @@ const CourseDetailsIntro = async ({ course }) => {
                       width={768}
                       height={463}
                       src={imageSrc}
-                      alt={course?.title || "Course thumbnail"}
+                      alt="Course thumbnail"
                       priority
                     />
                   )}

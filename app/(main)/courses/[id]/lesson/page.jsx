@@ -10,21 +10,55 @@ import {
 import { getLessonBySlug } from "@/queries/lessons";
 import { LessonVideo } from "./_components/lesson-video";
 
-const Course = async ({ params: { id }, searchParams: { name, module } }) => {
+const Course = async ({ params, searchParams }) => {
+  const id = params.id;
+  const nameParam = searchParams.name;
+  const moduleParam = searchParams.module;
+
   const course = await getCourseDetails(id);
   const allModules = replaceMongoIdInArray(course.modules).toSorted(
     (a, b) => a.order - b.order,
   );
 
-  const defaultLesson = replaceMongoIdInObject(
-    allModules[0]?.lessonIds?.toSorted((a, b) => a.order - b.order)[0],
-  );
+  // Kiểm tra xem allModules có phần tử nào không
+  if (!allModules || allModules.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen">
+        <h1 className="text-2xl font-semibold mb-4">
+          Không tìm thấy bài học nào trong khóa học này
+        </h1>
+        <Button asChild>
+          <a href="/courses">Quay lại danh sách khóa học</a>
+        </Button>
+      </div>
+    );
+  }
 
-  const lessonToPay = name ? await getLessonBySlug(name) : defaultLesson;
+  const firstModule = allModules[0];
+  const defaultLesson =
+    firstModule?.lessonIds?.length > 0
+      ? replaceMongoIdInObject(
+          firstModule.lessonIds.toSorted((a, b) => a.order - b.order)[0],
+        )
+      : null;
 
-  const defaultModule = module ?? allModules[0].slug;
+  if (!defaultLesson) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen">
+        <h1 className="text-2xl font-semibold mb-4">
+          Không tìm thấy bài học nào trong khóa học này
+        </h1>
+        <Button asChild>
+          <a href="/courses">Quay lại danh sách khóa học</a>
+        </Button>
+      </div>
+    );
+  }
 
-  //console.log({lessonToPay});
+  const lessonToPay = nameParam
+    ? await getLessonBySlug(nameParam)
+    : defaultLesson;
+  const defaultModule = moduleParam ?? (firstModule?.slug || "");
 
   return (
     <div>

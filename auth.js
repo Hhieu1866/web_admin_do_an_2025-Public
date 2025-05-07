@@ -103,18 +103,25 @@ const nextAuthConfig = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        console.log("JWT callback - Đang thêm role vào token:", user.role);
+        console.log(
+          "JWT callback - Đang thêm role và id vào token:",
+          user.role,
+          user.id,
+        );
         token.role = user.role;
+        token.id = user.id;
       }
       return token;
     },
     async session({ session, token }) {
       if (token) {
         console.log(
-          "Session callback - Đang thêm role vào session:",
+          "Session callback - Đang thêm role và id vào session:",
           token.role,
+          token.id,
         );
         session.user.role = token.role;
+        session.user.id = token.id;
       }
       return session;
     },

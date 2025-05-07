@@ -8,8 +8,19 @@ import { ArrowRightIcon } from "lucide-react";
 import { BookOpen } from "lucide-react";
 import EnrollCourse from "@/components/enroll-course";
 import { getImageUrl, shouldDisplayImage } from "@/lib/imageUtils";
+import { hasEnrollmentForCourse } from "@/queries/enrollments";
+import { getLoggedInUser } from "@/lib/loggedin-user";
+import { cn } from "@/lib/utils";
 
-const CourseCard = ({ course }) => {
+const CourseCard = async ({ course }) => {
+  // Lấy thông tin người dùng hiện tại
+  const loggedInUser = await getLoggedInUser();
+
+  // Kiểm tra xem người dùng đã đăng ký khóa học này chưa
+  const isEnrolled = loggedInUser
+    ? await hasEnrollmentForCourse(course?.id, loggedInUser?.id)
+    : false;
+
   console.log("Course data:", course?.id, {
     thumbnailUrl: course?.thumbnailUrl,
     thumbnail: course?.thumbnail,
@@ -38,7 +49,7 @@ const CourseCard = ({ course }) => {
           {showImage && (
             <Image
               src={imageSrc}
-              alt={course?.title || "Course thumbnail"}
+              alt="Course thumbnail"
               className="object-cover"
               fill
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -75,7 +86,19 @@ const CourseCard = ({ course }) => {
           {formatPrice(course?.price)}
         </p>
 
-        <EnrollCourse asLink={true} courseId={course?.id} />
+        {isEnrolled ? (
+          <Link href={`/courses/${course?.id}/lesson`}>
+            <Button
+              variant="ghost"
+              className="text-xs text-emerald-700 h-7 gap-1"
+            >
+              Vào học ngay
+              <ArrowRight className="w-3" />
+            </Button>
+          </Link>
+        ) : (
+          <EnrollCourse asLink={true} courseId={course?.id} />
+        )}
       </div>
     </div>
   );

@@ -66,7 +66,7 @@ const RelatedCourses = ({ relatedCourses }) => {
                         {showImage && (
                           <Image
                             src={imageSrc}
-                            alt={course.title || "Course thumbnail"}
+                            alt="Course thumbnail"
                             className="object-cover"
                             fill
                           />
