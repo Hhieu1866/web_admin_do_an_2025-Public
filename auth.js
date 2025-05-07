@@ -1,6 +1,6 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { User } from "./model/user-model";
+import { User, connectToMongoDB } from "./model/user-model";
 import bcrypt from "bcryptjs";
 import { authConfig } from "./auth.config";
 
@@ -23,6 +23,9 @@ const nextAuthConfig = {
         }
 
         try {
+          // Kết nối MongoDB trước khi truy vấn
+          await connectToMongoDB();
+
           console.log("Đang tìm user với email:", credentials.email);
           const user = await User.findOne({ email: credentials?.email });
 
@@ -103,18 +106,25 @@ const nextAuthConfig = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        console.log("JWT callback - Đang thêm role vào token:", user.role);
+        console.log(
+          "JWT callback - Đang thêm role và id vào token:",
+          user.role,
+          user.id,
+        );
         token.role = user.role;
+        token.id = user.id;
       }
       return token;
     },
     async session({ session, token }) {
       if (token) {
         console.log(
-          "Session callback - Đang thêm role vào session:",
+          "Session callback - Đang thêm role và id vào session:",
           token.role,
+          token.id,
         );
         session.user.role = token.role;
+        session.user.id = token.id;
       }
       return session;
     },
