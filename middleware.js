@@ -2,6 +2,9 @@ import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import { PUBLIC_ROUTES, LOGIN, ROOT } from "@/lib/routes";
 
+// Chỉ định sử dụng Node.js runtime thay vì Edge runtime
+export const runtime = "nodejs";
+
 export async function middleware(request) {
   const { nextUrl } = request;
 
