@@ -6,7 +6,6 @@ import { authConfig } from "./auth.config";
 
 const nextAuthConfig = {
   ...authConfig,
-  debug: true,
   providers: [
     CredentialsProvider({
       name: "credentials",
@@ -71,43 +70,9 @@ const nextAuthConfig = {
       },
     }),
   ],
-  cookies: {
-    sessionToken: {
-      name: `next-auth.session-token`,
-      options: {
-        httpOnly: true,
-        sameSite: "lax",
-        path: "/",
-        secure: process.env.NODE_ENV === "production",
-      },
-    },
-    callbackUrl: {
-      name: `next-auth.callback-url`,
-      options: {
-        httpOnly: true,
-        sameSite: "lax",
-        path: "/",
-        secure: process.env.NODE_ENV === "production",
-      },
-    },
-    csrfToken: {
-      name: `next-auth.csrf-token`,
-      options: {
-        httpOnly: true,
-        sameSite: "lax",
-        path: "/",
-        secure: process.env.NODE_ENV === "production",
-      },
-    },
-  },
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        console.log(
-          "JWT callback - Đang thêm role và id vào token:",
-          user.role,
-          user.id,
-        );
         token.role = user.role;
         token.id = user.id;
       }
@@ -115,11 +80,6 @@ const nextAuthConfig = {
     },
     async session({ session, token }) {
       if (token) {
-        console.log(
-          "Session callback - Đang thêm role và id vào session:",
-          token.role,
-          token.id,
-        );
         session.user.role = token.role;
         session.user.id = token.id;
       }
