@@ -1,4 +1,4 @@
-'use client'
+"use client";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
@@ -55,27 +55,32 @@ export function LoginForm() {
           duration: 3000,
           position: "top-center",
         });
-        
+
         // Kiểm tra role của người dùng để chuyển hướng phù hợp
         const userEmail = formData.get("email");
         try {
           // Lấy thông tin vai trò người dùng
-          const userResponse = await fetch(`/api/users/check-role?email=${encodeURIComponent(userEmail)}`);
+          const userResponse = await fetch(
+            `/api/users/check-role?email=${encodeURIComponent(userEmail)}`,
+          );
           const userData = await userResponse.json();
-          
+
           if (userData.role === "admin") {
             // Nếu là admin, chuyển đến trang admin dashboard
             router.push("/admin");
+          } else if (userData.role === "instructor") {
+            // Nếu là instructor, chuyển đến trang dashboard
+            router.push("/dashboard");
           } else {
-            // Nếu là người dùng thông thường, chuyển đến trang courses
+            // Nếu là người dùng thông thường (student), chuyển đến trang courses
             router.push("/courses");
-      }      
+          }
         } catch (err) {
           // Nếu có lỗi khi kiểm tra role, vẫn chuyển đến trang courses
           console.error("Lỗi khi kiểm tra role:", err);
           router.push("/courses");
         }
-      }      
+      }
     } catch (error) {
       // Hiển thị lỗi với toast
       toast.error(error.message || "Đã xảy ra lỗi khi đăng nhập", {
@@ -84,18 +89,18 @@ export function LoginForm() {
       });
     } finally {
       setIsLoading(false);
-  }
+    }
   }
 
   return (
     <Card className="mx-auto max-w-sm w-full">
       <CardHeader>
         <CardTitle className="text-2xl">
-        <p className="mt-5 text-3xl font-bold leading-tight text-gray-900 sm:leading-tight sm:text-5xl lg:text-3xl lg:leading-tight font-pj">
-              <span className="relative inline-flex sm:inline">
-                <span className="bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] blur-lg filter opacity-30 w-full h-full absolute inset-0"></span>
+          <p className="mt-5 text-3xl font-bold leading-tight text-gray-900 sm:leading-tight sm:text-5xl lg:text-3xl lg:leading-tight font-pj">
+            <span className="relative inline-flex sm:inline">
+              <span className="bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] blur-lg filter opacity-30 w-full h-full absolute inset-0"></span>
               <span className="relative">Đăng nhập</span>
-              </span>
+            </span>
           </p>
         </CardTitle>
         <CardDescription>
@@ -104,50 +109,55 @@ export function LoginForm() {
       </CardHeader>
       <CardContent>
         <form onSubmit={onSubmit}>
-        <div className="grid gap-4">
-          <div className="grid gap-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              placeholder="email@example.com"
-              required
-              disabled={isLoading}
-              className="focus:ring-primary"
-            />
-          </div>
-          <div className="grid gap-2">
-            <div className="flex items-center">
+          <div className="grid gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                placeholder="email@example.com"
+                required
+                disabled={isLoading}
+                className="focus:ring-primary"
+              />
+            </div>
+            <div className="grid gap-2">
+              <div className="flex items-center">
                 <Label htmlFor="password">Mật khẩu</Label>
-              {/* <Link href="#" className="ml-auto inline-block text-sm underline">
+                {/* <Link href="#" className="ml-auto inline-block text-sm underline">
                   Quên mật khẩu?
               </Link> */}
+              </div>
+              <Input
+                id="password"
+                name="password"
+                type="password"
+                required
+                disabled={isLoading}
+                className="focus:ring-primary"
+              />
             </div>
-            <Input 
-              id="password" 
-              name="password" 
-              type="password" 
-              required 
-              disabled={isLoading}
-              className="focus:ring-primary"
-            />
-          </div>
-          <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? (
                 <span className="flex items-center gap-2">
                   <Loader2 className="h-4 w-4 animate-spin" />
                   Đang xử lý...
                 </span>
-              ) : "Đăng nhập"}
-          </Button>
-        </div>
-        <div className="mt-4 text-center text-sm">
+              ) : (
+                "Đăng nhập"
+              )}
+            </Button>
+          </div>
+          <div className="mt-4 text-center text-sm">
             Chưa có tài khoản?{" "}
-            <Link href="/register" className="underline text-primary hover:text-primary/80">
+            <Link
+              href="/register"
+              className="underline text-primary hover:text-primary/80"
+            >
               Đăng ký
-          </Link>
-        </div>
+            </Link>
+          </div>
         </form>
       </CardContent>
     </Card>
