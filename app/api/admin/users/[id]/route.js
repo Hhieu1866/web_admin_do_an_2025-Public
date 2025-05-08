@@ -60,8 +60,8 @@ export async function PATCH(request, { params }) {
       );
     }
 
-    // Kiểm tra vai trò hợp lệ
-    const validRoles = ["admin", "instructor", "user"];
+    // Kiểm tra vai trò hợp lệ - Cập nhật danh sách vai trò phù hợp với UI
+    const validRoles = ["admin", "instructor", "student"];
     if (!validRoles.includes(role)) {
       return NextResponse.json(
         { error: "Vai trò không hợp lệ" },
