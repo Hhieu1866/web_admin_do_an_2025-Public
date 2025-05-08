@@ -12,15 +12,15 @@ const EnrollCourse = ({ asLink, courseId }) => {
   const { data: session } = useSession();
   const [isLoading, setIsLoading] = useState(false);
   const [isEnrolled, setIsEnrolled] = useState(false);
-  const [initialCheckDone, setInitialCheckDone] = useState(false);
 
   // Kiểm tra xem người dùng đã đăng ký khóa học này chưa khi component được tải
   useEffect(() => {
-    const checkEnrollment = async () => {
-      if (!session?.user) return;
+    // Chỉ kiểm tra khi có session
+    if (!session?.user) return;
 
+    let isMounted = true;
+    const checkEnrollment = async () => {
       try {
-        setIsLoading(true);
         const response = await fetch("/api/courses/enroll", {
           method: "POST",
           headers: {
@@ -29,19 +29,23 @@ const EnrollCourse = ({ asLink, courseId }) => {
           body: JSON.stringify({ courseId, checkOnly: true }),
         });
 
+        if (!isMounted) return;
+
         const data = await response.json();
         if (response.ok && data.isEnrolled) {
           setIsEnrolled(true);
         }
       } catch (error) {
         console.error("Lỗi khi kiểm tra đăng ký:", error);
-      } finally {
-        setIsLoading(false);
-        setInitialCheckDone(true);
       }
     };
 
     checkEnrollment();
+
+    // Cleanup function để tránh memory leak
+    return () => {
+      isMounted = false;
+    };
   }, [courseId, session]);
 
   const handleEnroll = async () => {
@@ -89,25 +93,6 @@ const EnrollCourse = ({ asLink, courseId }) => {
       setIsLoading(false);
     }
   };
-
-  // Nếu đang kiểm tra đăng ký, hiển thị loading
-  if (!initialCheckDone && isLoading) {
-    return asLink ? (
-      <Button
-        variant="ghost"
-        className="text-xs text-slate-500 h-7 gap-1"
-        disabled={true}
-      >
-        <Loader2 className="h-3 w-3 animate-spin" />
-        <span>Đang kiểm tra...</span>
-      </Button>
-    ) : (
-      <Button className={cn(buttonVariants({ size: "lg" }))} disabled={true}>
-        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-        <span>Đang kiểm tra...</span>
-      </Button>
-    );
-  }
 
   // Nếu đã đăng ký, hiển thị nút vào học
   if (isEnrolled) {

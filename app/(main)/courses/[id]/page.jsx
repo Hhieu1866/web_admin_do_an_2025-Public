@@ -11,11 +11,15 @@ const SingleCoursePage = async ({ params: { id } }) => {
   const course = await getCourseDetails(id);
   //console.log(course);
   const currentCourseId = course.id.toString();
-  const categoryId = course.category._id.toString();
 
-  // Fetch related courses
-  const relatedCourses = await getRelatedCourses(currentCourseId, categoryId);
-  // console.log(relatedCourses);
+  // Kiểm tra tồn tại của category trước khi truy cập _id
+  let relatedCourses = [];
+  if (course.category && course.category._id) {
+    const categoryId = course.category._id.toString();
+    // Fetch related courses
+    relatedCourses = await getRelatedCourses(currentCourseId, categoryId);
+  }
+
   return (
     <>
       <CourseDetailsIntro course={course} />
@@ -31,9 +35,11 @@ const SingleCoursePage = async ({ params: { id } }) => {
         <MoneyBack />
       </div>
 
-      <div className="mb-12">
-        <RelatedCourses relatedCourses={relatedCourses} />
-      </div>
+      {relatedCourses.length > 0 && (
+        <div className="mb-12">
+          <RelatedCourses relatedCourses={relatedCourses} />
+        </div>
+      )}
     </>
   );
 };
