@@ -15,10 +15,12 @@ import Link from "next/link";
 import { BellIcon, SunIcon, MoonIcon, Home, User, LogOut } from "lucide-react";
 import { useTheme } from "next-themes";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { useRouter } from "next/navigation";
 
 export default function AdminHeader({ user }) {
   const { setTheme, theme } = useTheme();
   const [notifications] = useState([]);
+  const router = useRouter();
 
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark");
@@ -127,8 +129,9 @@ export default function AdminHeader({ user }) {
             <DropdownMenuItem
               className="text-destructive"
               onClick={() => {
-                signOut();
-                window.location.href = "/login";
+                signOut({ redirect: false }).then(() => {
+                  router.push("/login");
+                });
               }}
             >
               <LogOut className="mr-2 h-4 w-4" />

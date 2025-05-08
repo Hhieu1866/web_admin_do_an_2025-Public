@@ -1,7 +1,7 @@
 "use client";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import React from "react";
 
 const menu = [
@@ -11,6 +11,8 @@ const menu = [
 
 function Menu() {
   const pathname = usePathname();
+  const router = useRouter();
+
   return (
     <ul className="list-none sidebar-nav mb-0 mt-3" id="navmenu-nav">
       {menu.map((item, i) => (
@@ -28,9 +30,11 @@ function Menu() {
       <li className="navbar-item account-menu">
         <Link
           href="#"
-          onClick={() => {
-            signOut();
-            window.location.href = "/login";
+          onClick={(e) => {
+            e.preventDefault();
+            signOut({ redirect: false }).then(() => {
+              router.push("/login");
+            });
           }}
           className="navbar-link text-slate-400 flex items-center py-2 rounded"
         >

@@ -1,9 +1,20 @@
-"use client"
+"use client";
 
-import { BookOpen, LayoutDashboard, LineChart, LifeBuoy, List, LogOut, Settings, Users, Video, User } from "lucide-react"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { signOut } from "next-auth/react"
+import {
+  BookOpen,
+  LayoutDashboard,
+  LineChart,
+  LifeBuoy,
+  List,
+  LogOut,
+  Settings,
+  Users,
+  Video,
+  User,
+} from "lucide-react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { signOut } from "next-auth/react";
 
 import {
   Sidebar,
@@ -15,55 +26,56 @@ import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarGroupContent,
-  SidebarFooter
-} from "@/components/ui/sidebar"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { cn } from "@/lib/utils"
+  SidebarFooter,
+} from "@/components/ui/sidebar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
 
 // Định nghĩa các mục menu
 const mainMenuItems = [
-    {
-      title: "Dashboard",
+  {
+    title: "Dashboard",
     url: "/admin",
-    icon: LayoutDashboard
-    },
-    {
+    icon: LayoutDashboard,
+  },
+  {
     title: "Người dùng",
     url: "/admin/users",
-    icon: Users
-    },
-    {
+    icon: Users,
+  },
+  {
     title: "Khóa học",
     url: "/admin/courses",
-    icon: BookOpen
-    },
-    {
+    icon: BookOpen,
+  },
+  {
     title: "Buổi học trực tuyến",
     url: "/admin/lives",
-    icon: Video
-        },
-        {
+    icon: Video,
+  },
+  {
     title: "Báo cáo",
     url: "/admin/reports",
-    icon: LineChart
-  }
-]
+    icon: LineChart,
+  },
+];
 
 const settingsItems = [
-        {
+  {
     title: "Cài đặt",
     url: "/admin/settings",
-    icon: Settings
-    },
-    {
+    icon: Settings,
+  },
+  {
     title: "Trợ giúp",
     url: "/admin/help",
-    icon: LifeBuoy
-  }
-]
+    icon: LifeBuoy,
+  },
+];
 
 export function AppSidebar() {
-  const pathname = usePathname()
+  const pathname = usePathname();
+  const router = useRouter();
 
   return (
     <Sidebar className="border-r shadow-sm transition-all">
@@ -85,7 +97,8 @@ export function AppSidebar() {
                     isActive={pathname === item.url}
                     className={cn(
                       "p-2",
-                      pathname === item.url && "bg-black text-white hover:bg-black hover:text-white"
+                      pathname === item.url &&
+                        "bg-black text-white hover:bg-black hover:text-white",
                     )}
                   >
                     <Link href={item.url} className="flex items-center gap-4">
@@ -109,7 +122,8 @@ export function AppSidebar() {
                     isActive={pathname === item.url}
                     className={cn(
                       "p-2",
-                      pathname === item.url && "bg-black text-white hover:bg-black hover:text-white"
+                      pathname === item.url &&
+                        "bg-black text-white hover:bg-black hover:text-white",
                     )}
                   >
                     <Link href={item.url} className="flex items-center gap-4">
@@ -121,8 +135,12 @@ export function AppSidebar() {
               ))}
               <SidebarMenuItem>
                 <SidebarMenuButton asChild className="p-2">
-                  <button 
-                    onClick={() => signOut()} 
+                  <button
+                    onClick={() => {
+                      signOut({ redirect: false }).then(() => {
+                        router.push("/login");
+                      });
+                    }}
                     className="flex w-full items-center gap-4 text-red-500"
                   >
                     <LogOut className="h-5 w-5" />
@@ -144,10 +162,12 @@ export function AppSidebar() {
           </Avatar>
           <div className="flex flex-col">
             <span className="text-sm font-medium">Admin</span>
-            <span className="text-xs text-muted-foreground">admin@email.com</span>
+            <span className="text-xs text-muted-foreground">
+              admin@email.com
+            </span>
           </div>
         </div>
       </SidebarFooter>
     </Sidebar>
-  )
+  );
 }

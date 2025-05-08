@@ -9,7 +9,7 @@ import Image from "next/image";
 import Link from "next/link";
 import Menu from "./account-menu";
 import { auth } from "@/auth";
-import { redirect } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import { getUserByEmail } from "@/queries/users";
 import { toast } from "sonner";
 import { Loader2, Camera, Upload, Trash2 } from "lucide-react";
@@ -20,6 +20,7 @@ const AccountSidebar = ({ loggedInUser }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [imageError, setImageError] = useState(false);
   const fileInputRef = useRef(null);
+  const router = useRouter();
 
   // Hàm xử lý khi click vào nút thay đổi ảnh
   const handleChangeAvatar = () => {
@@ -67,7 +68,7 @@ const AccountSidebar = ({ loggedInUser }) => {
       toast.success(result.message || "Đã cập nhật ảnh đại diện");
 
       // Làm mới trang để hiển thị ảnh mới
-      window.location.reload();
+      router.refresh();
 
       // Reset input file sau khi hoàn thành
       if (fileInputRef.current) {
@@ -111,7 +112,7 @@ const AccountSidebar = ({ loggedInUser }) => {
       toast.success(result.message || "Đã xóa ảnh đại diện");
 
       // Làm mới trang để cập nhật UI
-      window.location.reload();
+      router.refresh();
     } catch (error) {
       console.error("Delete error:", error);
       toast.error(error.message || "Không thể xóa ảnh");

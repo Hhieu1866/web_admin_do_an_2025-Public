@@ -12,26 +12,25 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { signOut } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 export const Navbar = () => {
-
   const [loggedInUser, setLoggedInUser] = useState(null);
+  const router = useRouter();
 
-  useEffect(() => {  
-      async function fetchMe() {
-          try {
-              const response = await fetch("/api/me");
-              const data = await response.json();
-             // console.log(data);
-              setLoggedInUser(data);
-          } catch (error) {
-              console.log(error)
-          }
+  useEffect(() => {
+    async function fetchMe() {
+      try {
+        const response = await fetch("/api/me");
+        const data = await response.json();
+        // console.log(data);
+        setLoggedInUser(data);
+      } catch (error) {
+        console.log(error);
       }
-      fetchMe();
-  },[]);
-
-
+    }
+    fetchMe();
+  }, []);
 
   return (
     <div className="p-4 border-b h-full flex items-center bg-white shadow-sm">
@@ -43,24 +42,34 @@ export const Navbar = () => {
               <Avatar>
                 <AvatarImage
                   src={loggedInUser?.profilePicture}
-                  alt={`${loggedInUser?.firstName || ''} ${loggedInUser?.lastName || ''}`}
-                  style={{ objectFit: 'cover', objectPosition: 'center' }}
+                  alt={`${loggedInUser?.firstName || ""} ${
+                    loggedInUser?.lastName || ""
+                  }`}
+                  style={{ objectFit: "cover", objectPosition: "center" }}
                 />
                 <AvatarFallback className="text-xs">
-                  {loggedInUser?.firstName?.[0] || ''}
-                  {loggedInUser?.lastName?.[0] || ''}
+                  {loggedInUser?.firstName?.[0] || ""}
+                  {loggedInUser?.lastName?.[0] || ""}
                 </AvatarFallback>
               </Avatar>
             </div>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56 mt-4">
-          
-          <DropdownMenuItem className="cursor-pointer">
+            <DropdownMenuItem className="cursor-pointer">
               <Link href="/account">Profile</Link>
-           </DropdownMenuItem>
+            </DropdownMenuItem>
 
             <DropdownMenuItem className="cursor-pointer">
-              <Link href="#" onClick={() => {signOut()}} >Logout</Link>
+              <Link
+                href="#"
+                onClick={() => {
+                  signOut({ redirect: false }).then(() => {
+                    router.push("/login");
+                  });
+                }}
+              >
+                Logout
+              </Link>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
