@@ -9,7 +9,7 @@ import {
   Form,
   FormControl,
   FormField,
-  FormItem, 
+  FormItem,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -42,8 +42,6 @@ export const ModulesForm = ({ initialData, courseId }) => {
   const [isCreating, setIsCreating] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
 
-  const toggleCreating = () => setIsCreating((current) => !current);
-
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -51,18 +49,22 @@ export const ModulesForm = ({ initialData, courseId }) => {
     },
   });
 
+  const toggleCreating = () => {
+    form.reset();
+    setIsCreating((current) => !current);
+  };
+
   const { isSubmitting, isValid } = form.formState;
 
   const onSubmit = async (values) => {
     try {
-
       const formData = new FormData();
       formData.append("title", values?.title);
       formData.append("slug", getSlug(values?.title));
-      formData.append("courseId",courseId);
-      formData.append("order", modules.length)
+      formData.append("courseId", courseId);
+      formData.append("order", modules.length);
 
-      const module = await createModule(formData); 
+      const module = await createModule(formData);
 
       setModules((modules) => [
         ...modules,
@@ -72,12 +74,13 @@ export const ModulesForm = ({ initialData, courseId }) => {
         },
       ]);
       toast.success("Module created");
+      form.reset();
       toggleCreating();
       router.refresh();
     } catch (error) {
       toast.error("Something went wrong");
     }
-  }; 
+  };
 
   const onReorder = async (updateData) => {
     console.log({ updateData });
@@ -151,7 +154,7 @@ export const ModulesForm = ({ initialData, courseId }) => {
         <div
           className={cn(
             "text-sm mt-2",
-            !modules?.length && "text-slate-500 italic"
+            !modules?.length && "text-slate-500 italic",
           )}
         >
           {!modules?.length && "No module"}
