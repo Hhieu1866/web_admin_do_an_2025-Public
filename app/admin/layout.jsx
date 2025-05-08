@@ -22,8 +22,8 @@ export default async function AdminLayout({ children }) {
   return (
     <>
       <AdminSidebarWrapper>
-        {children}
+        <div className="p-6">{children}</div>
       </AdminSidebarWrapper>
     </>
   );
-} 
+}

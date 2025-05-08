@@ -514,7 +514,15 @@ export default function UsersPage() {
 
     if (role === "instructor") {
       return (
-        <Badge variant="secondary" className="font-medium">
+        <Badge className="font-medium bg-blue-500 hover:bg-blue-600">
+          {roleInfo.label}
+        </Badge>
+      );
+    }
+
+    if (role === "student") {
+      return (
+        <Badge className="font-medium bg-green-500 hover:bg-green-600">
           {roleInfo.label}
         </Badge>
       );
@@ -593,7 +601,9 @@ export default function UsersPage() {
                   user.role === "admin"
                     ? "bg-destructive/10 text-destructive border-destructive/20 hover:bg-destructive/20"
                     : user.role === "instructor"
-                    ? "bg-secondary/20 text-secondary-foreground border-secondary/30 hover:bg-secondary/30"
+                    ? "bg-blue-100 text-blue-600 border-blue-200 hover:bg-blue-200"
+                    : user.role === "student"
+                    ? "bg-green-100 text-green-600 border-green-200 hover:bg-green-200"
                     : "bg-muted text-muted-foreground border-muted-foreground/20 hover:bg-muted/70",
                 )}
               >
@@ -674,8 +684,34 @@ export default function UsersPage() {
     ],
   );
 
+  // Xử lý làm mới danh sách người dùng
+  const handleRefresh = useCallback(async () => {
+    // Đặt trạng thái loading ngay lập tức
+    setLoading(true);
+
+    // Hiển thị thông báo đang tải
+    const toastId = toast.loading("Đang làm mới danh sách...");
+
+    try {
+      // Gọi API để lấy danh sách mới
+      await fetchUsers(1, "", "all");
+
+      // Đóng thông báo loading
+      toast.dismiss(toastId);
+
+      // Hiển thị thông báo thành công
+      toast.success("Đã làm mới danh sách người dùng");
+    } catch (error) {
+      // Đóng thông báo loading
+      toast.dismiss(toastId);
+
+      // Hiển thị thông báo lỗi
+      toast.error("Không thể làm mới danh sách: " + error.message);
+    }
+  }, [fetchUsers]);
+
   return (
-    <div className="space-y-6 p-3 max-w-full">
+    <div className="space-y-6">
       {/* Page header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-8">
         <div>
@@ -695,59 +731,40 @@ export default function UsersPage() {
         </Button>
       </div>
 
-      {/* Bộ lọc và tìm kiếm */}
-      <Card className="border shadow-sm">
-        <CardHeader className="px-4 py-3 flex flex-row items-center gap-2 border-b bg-muted/20">
-          <Filter className="h-4 w-4 text-muted-foreground" />
-          <div>
-            <CardTitle className="text-base font-medium">Bộ lọc</CardTitle>
-            <CardDescription>
-              Tìm kiếm và lọc danh sách người dùng
-            </CardDescription>
-          </div>
-        </CardHeader>
-        <CardContent className="px-4 py-4 flex flex-col sm:flex-row gap-4">
-          <form onSubmit={handleSearch} className="flex flex-1 gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Tìm kiếm email, tên người dùng..."
-                className="pl-9 border-muted-foreground/20 h-10 focus-visible:ring-primary"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
-            <Button
-              type="submit"
-              variant="secondary"
-              className="h-10 bg-secondary hover:bg-secondary/80 text-secondary-foreground shadow-sm transition-colors"
-            >
-              Tìm kiếm
-            </Button>
-          </form>
-          <div className="w-full sm:w-[180px]">
-            <Select value={roleFilter} onValueChange={handleRoleFilterChange}>
-              <SelectTrigger className="border-muted-foreground/20 h-10 focus:ring-primary">
-                <SelectValue placeholder="Lọc theo vai trò" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">
-                  <div className="flex items-center">
-                    <Filter className="mr-2 h-4 w-4" />
-                    Tất cả vai trò
-                  </div>
-                </SelectItem>
-                {userRoles.map((role) => (
-                  <SelectItem key={role.value} value={role.value}>
-                    <div className="flex items-center">{role.label}</div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Thanh tìm kiếm và lọc đơn giản */}
+      <div className="flex flex-col sm:flex-row items-center gap-3">
+        <div className="relative w-full sm:flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="search"
+            placeholder="Tìm kiếm người dùng..."
+            className="pl-9 w-full h-11" // tăng chiều cao
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                fetchUsers(1, e.target.value, roleFilter);
+              }
+            }}
+          />
+        </div>
+
+        <Select value={roleFilter} onValueChange={handleRoleFilterChange}>
+          <SelectTrigger className="w-[140px] sm:w-[160px] h-11">
+            {" "}
+            {/* tăng chiều cao */}
+            <SelectValue placeholder="Tất cả vai trò" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tất cả vai trò</SelectItem>
+            {userRoles.map((role) => (
+              <SelectItem key={role.value} value={role.value}>
+                {role.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
       {/* Bảng người dùng */}
       <Card className="border shadow-sm overflow-hidden">
@@ -771,7 +788,7 @@ export default function UsersPage() {
               variant="outline"
               size="sm"
               className="h-8 gap-1 text-xs"
-              onClick={() => fetchUsers(1, "", "all")}
+              onClick={handleRefresh}
               disabled={loading}
             >
               {loading ? (
