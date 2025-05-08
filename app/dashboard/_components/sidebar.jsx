@@ -7,10 +7,10 @@ const Sidebar = () => {
     <div className="h-full border-r flex flex-col overflow-y-auto bg-white shadow-sm">
       <div className="p-6">
         <Link href="/">
-        <Logo />
-        </Link> 
+          <Logo />
+        </Link>
       </div>
-      <div className="flex flex-col w-full">
+      <div className="flex flex-col w-full flex-1">
         <SidebarRoutes />
       </div>
     </div>

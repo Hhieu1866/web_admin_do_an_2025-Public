@@ -129,6 +129,11 @@ const nextAuthConfig = {
       return session;
     },
   },
+  events: {
+    async signOut() {
+      console.log("Người dùng đăng xuất, chuyển hướng về trang login");
+    },
+  },
 };
 
 export const {

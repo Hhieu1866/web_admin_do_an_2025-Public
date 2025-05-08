@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import {
   Users,
@@ -13,28 +13,39 @@ import {
   ChevronLeft,
   ChevronRight,
   GalleryVerticalEnd,
-  LogOut
+  LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { 
-  Sidebar, 
-  SidebarTrigger, 
-  SidebarScrollArea, 
-  SidebarSection, 
-  SidebarMenu, 
-  SidebarMenuItem, 
-  SidebarMenuButton 
+import {
+  Sidebar,
+  SidebarTrigger,
+  SidebarScrollArea,
+  SidebarSection,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
 } from "@/components/ui/sidebar";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { signOut } from "next-auth/react";
 
 export default function AdminSidebar({ collapsed, setCollapsed }) {
   const pathname = usePathname();
+  const router = useRouter();
 
   // Lưu trạng thái thu gọn vào localStorage
   useEffect(() => {
     localStorage.setItem("admin-sidebar-collapsed", collapsed);
   }, [collapsed]);
+
+  const handleSignOut = async () => {
+    await signOut({ redirect: false });
+    router.push("/login");
+  };
 
   const menuItems = [
     {
@@ -79,7 +90,7 @@ export default function AdminSidebar({ collapsed, setCollapsed }) {
       <div className="flex h-16 items-center border-b border-border/40 px-4">
         <div className="flex items-center gap-3 transition-all duration-300">
           <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary shadow-md">
-            <GalleryVerticalEnd className="h-5 w-5 text-primary-foreground"/>
+            <GalleryVerticalEnd className="h-5 w-5 text-primary-foreground" />
           </div>
           {!collapsed && (
             <span className="text-xl font-semibold tracking-tight transition-opacity">
@@ -95,7 +106,7 @@ export default function AdminSidebar({ collapsed, setCollapsed }) {
           <SidebarMenu>
             {menuItems.map((item) => {
               const isActive = pathname === item.href;
-              
+
               return (
                 <SidebarMenuItem key={item.href}>
                   {collapsed ? (
@@ -107,17 +118,23 @@ export default function AdminSidebar({ collapsed, setCollapsed }) {
                           asChild
                           className={cn(
                             "flex h-10 w-full items-center justify-center rounded-md px-2 transition-all duration-200",
-                            isActive 
-                              ? "bg-primary/10 text-primary" 
-                              : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                            isActive
+                              ? "bg-primary/10 text-primary"
+                              : "text-muted-foreground hover:bg-accent hover:text-foreground",
                           )}
                         >
-                          <Link href={item.href} className="flex items-center justify-center">
+                          <Link
+                            href={item.href}
+                            className="flex items-center justify-center"
+                          >
                             {item.icon}
                           </Link>
                         </SidebarMenuButton>
                       </TooltipTrigger>
-                      <TooltipContent side="right" className="border bg-popover text-popover-foreground">
+                      <TooltipContent
+                        side="right"
+                        className="border bg-popover text-popover-foreground"
+                      >
                         {item.title}
                       </TooltipContent>
                     </Tooltip>
@@ -128,9 +145,9 @@ export default function AdminSidebar({ collapsed, setCollapsed }) {
                       asChild
                       className={cn(
                         "flex h-10 w-full items-center gap-3 rounded-md px-3 transition-all duration-200",
-                        isActive 
-                          ? "bg-primary/10 text-primary font-medium" 
-                          : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                        isActive
+                          ? "bg-primary/10 text-primary font-medium"
+                          : "text-muted-foreground hover:bg-accent hover:text-foreground",
                       )}
                     >
                       <Link href={item.href} className="flex items-center">
@@ -145,7 +162,7 @@ export default function AdminSidebar({ collapsed, setCollapsed }) {
           </SidebarMenu>
         </SidebarSection>
       </SidebarScrollArea>
-      
+
       {/* Footer with Actions */}
       <div className="mt-auto border-t border-border/40 p-3">
         {/* User profile button (example) */}
@@ -156,10 +173,44 @@ export default function AdminSidebar({ collapsed, setCollapsed }) {
           {!collapsed && (
             <div className="flex-1 overflow-hidden">
               <p className="truncate text-sm font-medium">Admin User</p>
-              <p className="truncate text-xs text-muted-foreground">admin@example.com</p>
+              <p className="truncate text-xs text-muted-foreground">
+                admin@example.com
+              </p>
             </div>
           )}
         </div>
+
+        {/* Nút đăng xuất */}
+        {collapsed ? (
+          <Tooltip delayDuration={0}>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                className="mb-2 w-full"
+                onClick={handleSignOut}
+              >
+                <LogOut className="h-4 w-4 text-destructive" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent
+              side="right"
+              className="border bg-popover text-popover-foreground"
+            >
+              Đăng xuất
+            </TooltipContent>
+          </Tooltip>
+        ) : (
+          <Button
+            variant="outline"
+            size="sm"
+            className="mb-2 w-full gap-2 text-destructive hover:bg-destructive/10 justify-start"
+            onClick={handleSignOut}
+          >
+            <LogOut className="h-4 w-4" />
+            <span>Đăng xuất</span>
+          </Button>
+        )}
 
         {/* Collapse button */}
         <SidebarTrigger asChild>
@@ -168,7 +219,7 @@ export default function AdminSidebar({ collapsed, setCollapsed }) {
             size="sm"
             className={cn(
               "w-full justify-center transition-all duration-300",
-              collapsed ? "rounded-md" : "gap-2"
+              collapsed ? "rounded-md" : "gap-2",
             )}
           >
             {collapsed ? (
@@ -184,4 +235,4 @@ export default function AdminSidebar({ collapsed, setCollapsed }) {
       </div>
     </Sidebar>
   );
-} 
+}

@@ -29,7 +29,7 @@ export default function AdminHeader({ user }) {
       <div className="flex items-center gap-2">
         <SidebarTrigger className="-ml-2 h-9 w-9" variant="ghost" />
       </div>
-      
+
       <div className="flex flex-1 items-center justify-end gap-4">
         {/* Theme toggle */}
         <Button
@@ -48,11 +48,7 @@ export default function AdminHeader({ user }) {
         {/* Notifications */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="relative h-9 w-9"
-            >
+            <Button variant="ghost" size="icon" className="relative h-9 w-9">
               <BellIcon className="h-5 w-5" />
               {notifications.length > 0 && (
                 <span className="absolute right-1.5 top-1.5 flex h-2 w-2 rounded-full bg-destructive" />
@@ -63,7 +59,11 @@ export default function AdminHeader({ user }) {
             <div className="flex items-center justify-between p-4">
               <span className="text-sm font-medium">Thông báo</span>
               {notifications.length > 0 && (
-                <Button variant="ghost" size="sm" className="h-auto px-2 py-1 text-xs">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-auto px-2 py-1 text-xs"
+                >
                   Đánh dấu đã đọc
                 </Button>
               )}
@@ -96,8 +96,8 @@ export default function AdminHeader({ user }) {
                   alt={`${user?.firstName} ${user?.lastName}`}
                 />
                 <AvatarFallback className="text-xs">
-                  {user?.firstName?.[0] || ''}
-                  {user?.lastName?.[0] || '?'}
+                  {user?.firstName?.[0] || ""}
+                  {user?.lastName?.[0] || "?"}
                 </AvatarFallback>
               </Avatar>
               <div className="hidden flex-col items-start text-left md:flex">
@@ -126,7 +126,10 @@ export default function AdminHeader({ user }) {
             <DropdownMenuSeparator />
             <DropdownMenuItem
               className="text-destructive"
-              onClick={() => signOut()}
+              onClick={() => {
+                signOut();
+                window.location.href = "/login";
+              }}
             >
               <LogOut className="mr-2 h-4 w-4" />
               Đăng xuất
@@ -136,4 +139,4 @@ export default function AdminHeader({ user }) {
       </div>
     </header>
   );
-} 
+}
