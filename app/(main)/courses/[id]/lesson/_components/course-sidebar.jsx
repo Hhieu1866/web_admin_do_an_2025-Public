@@ -1,4 +1,3 @@
- 
 import { CourseProgress } from "@/components/course-progress";
 import {
   Accordion,
@@ -23,61 +22,79 @@ import { ObjectId } from "mongoose";
 import { getReport } from "@/queries/reports";
 import Quiz from "./quiz";
 
-export const CourseSidebar = async ({courseId}) => {
-
+export const CourseSidebar = async ({ courseId }) => {
   const course = await getCourseDetails(courseId);
   const loggedinUser = await getLoggedInUser();
 
-  const report = await getReport({ course:courseId, student: loggedinUser.id  })
+  const report = await getReport({
+    course: courseId,
+    student: loggedinUser.id,
+  });
 
-  const totalCompletedModules = report?.totalCompletedModeules ? report?.totalCompletedModeules.length : 0;
+  const totalCompletedModules = report?.totalCompletedModeules
+    ? report?.totalCompletedModeules.length
+    : 0;
 
   const totalModules = course?.modules ? course.modules.length : 0;
 
-  const totalProgress = (totalModules > 0) ? (totalCompletedModules/totalModules) * 100 : 0;
+  const totalProgress =
+    totalModules > 0 ? (totalCompletedModules / totalModules) * 100 : 0;
 
+  // Sanitize fucntion for handle ObjectID and Buffer
+  function sanitizeData(data) {
+    if (!data) return null;
 
+    return JSON.parse(
+      JSON.stringify(data, (key, value) => {
+        if (value instanceof ObjectId) {
+          return value.toString();
+        }
+        if (Buffer.isBuffer(value)) {
+          return value.toString("base64");
+        }
+        return value;
+      }),
+    );
+  }
 
+  let updatedModules = [];
 
+  if (course?.modules && Array.isArray(course.modules)) {
+    updatedModules = await Promise.all(
+      course.modules.map(async (module) => {
+        const moduleId = module._id.toString();
+        const lessons = module?.lessonIds;
 
-  const updatedModules = await Promise.all(course?.modules.map(async(module) => {
-    const moduleId = module._id.toString();
-    const lessons = module?.lessonIds;
+        if (lessons && Array.isArray(lessons)) {
+          const updatedLessons = await Promise.all(
+            lessons.map(async (lesson) => {
+              const lessonId = lesson._id.toString();
+              const watch = await Watch.findOne({
+                lesson: lessonId,
+                module: moduleId,
+                user: loggedinUser.id,
+              }).lean();
+              if (watch?.state === "completed") {
+                lesson.state = "completed";
+              }
+              return lesson;
+            }),
+          );
+        }
 
-  const updatedLessons = await Promise.all(lessons.map(async (lesson) => {
-    const lessonId = lesson._id.toString();
-    const watch = await Watch.findOne({lesson: lessonId, module:moduleId , user: loggedinUser.id }).lean();
-    if (watch?.state === 'completed') {
-      lesson.state = 'completed';
-    }
-    return lesson;
-  }))
-    return module; 
-  }));
+        return module;
+      }),
+    );
+  }
 
   //console.log(updatedModules);
 
-  const updatedallModules = sanitizeData(updatedModules)
-
-
-  // Sanitize fucntion for handle ObjectID and Buffer
-function sanitizeData(data) {
-  return JSON.parse(
-    JSON.stringify(data, (key, value) => {
-      if (value instanceof ObjectId) {
-          return value.toString();
-      }
-      if (Buffer.isBuffer(value)) {
-        return value.toString("base64")
-      }
-      return value;
-    })
-  );
-}
+  const updatedallModules =
+    updatedModules.length > 0 ? sanitizeData(updatedModules) : [];
 
   const quizSetall = course?.quizSet;
   const isQuizComplete = report?.quizAssessment ? true : false;
-  const quizSet = sanitizeData(quizSetall);
+  const quizSet = quizSetall ? sanitizeData(quizSetall) : null;
 
   //console.log({quizSet});
   //console.log({isQuizComplete});
@@ -86,33 +103,35 @@ function sanitizeData(data) {
     <>
       <div className="h-full border-r flex flex-col overflow-y-auto shadow-sm">
         <div className="p-8 flex flex-col border-b">
-          <h1 className="font-semibold">{course.title}</h1>
+          <h1 className="font-semibold">{course?.title}</h1>
           {/* Check purchase */}
           {
             <div className="mt-10">
               <CourseProgress variant="success" value={totalProgress} />
             </div>
           }
-        </div> 
-        
+        </div>
+
         <SidebarModules courseId={courseId} modules={updatedallModules} />
 
         <div className="w-full px-4 lg:px-14 pt-10 border-t">
-          {
-            quizSet && <Quiz courseId={courseId} quizSet={quizSet} isTaken={isQuizComplete} />
-          }
-          
+          {quizSet && (
+            <Quiz
+              courseId={courseId}
+              quizSet={quizSet}
+              isTaken={isQuizComplete}
+            />
+          )}
         </div>
 
         <div className="w-full px-6 mb-10">
-        <GiveReview courseId={courseId} loginid={loggedinUser.id} /> 
-        <DownloadCertificate courseId={courseId} totalProgress={totalProgress}  />
-        </div> 
-
-
-
+          <GiveReview courseId={courseId} loginid={loggedinUser.id} />
+          <DownloadCertificate
+            courseId={courseId}
+            totalProgress={totalProgress}
+          />
+        </div>
       </div>
-      
     </>
   );
 };

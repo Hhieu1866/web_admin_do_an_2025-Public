@@ -17,6 +17,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { createReview } from "@/app/actions/review";
+import { useState } from "react";
 
 const formSchema = z.object({
   rating: z.coerce
@@ -33,6 +34,9 @@ const formSchema = z.object({
 });
 
 export const ReviewModal = ({ courseId, loginid, open, setOpen }) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -41,17 +45,41 @@ export const ReviewModal = ({ courseId, loginid, open, setOpen }) => {
     },
   });
 
-  const { isSubmitting } = form.formState;
-
   const onSubmit = async (values) => {
-    try {
-      await createReview(values, loginid, courseId);
-      toast.success("Review added");
-      setOpen(false);
-    } catch (error) {
-      toast.error("Something went wrong");
+    if (!loginid) {
+      toast.error("Bạn cần đăng nhập để đánh giá");
+      return;
     }
-    console.log(values);
+
+    if (!courseId) {
+      toast.error("Không tìm thấy khóa học");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setErrorMessage("");
+
+    try {
+      const response = await createReview(values, loginid, courseId);
+
+      if (response.success) {
+        toast.success(response.message);
+        form.reset();
+        setOpen(false);
+      } else {
+        // Xử lý lỗi từ server
+        setErrorMessage(response.message);
+        toast.error(response.message);
+      }
+    } catch (clientError) {
+      // Lỗi client-side (network, etc.)
+      console.error("Lỗi client-side:", clientError);
+      const message = "Lỗi kết nối, vui lòng thử lại sau";
+      setErrorMessage(message);
+      toast.error(message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -59,7 +87,9 @@ export const ReviewModal = ({ courseId, loginid, open, setOpen }) => {
       <DialogContent
         className="overflow-y-auto max-h-[90vh]"
         onInteractOutside={(e) => {
-          e.preventDefault();
+          if (isSubmitting) {
+            e.preventDefault();
+          }
         }}
       >
         <DialogTitle>Submit Your Review</DialogTitle>
@@ -68,6 +98,12 @@ export const ReviewModal = ({ courseId, loginid, open, setOpen }) => {
             onSubmit={form.handleSubmit(onSubmit)}
             className="space-y-8 mt-8"
           >
+            {errorMessage && (
+              <div className="bg-red-100 text-red-800 p-3 rounded-md mb-4">
+                {errorMessage}
+              </div>
+            )}
+
             {/* rating */}
             <FormField
               control={form.control}
@@ -115,11 +151,12 @@ export const ReviewModal = ({ courseId, loginid, open, setOpen }) => {
                 variant="outline"
                 type="button"
                 onClick={() => setOpen(false)}
+                disabled={isSubmitting}
               >
                 Cancel
               </Button>
               <Button type="submit" disabled={isSubmitting}>
-                Submit
+                {isSubmitting ? "Đang gửi..." : "Submit"}
               </Button>
             </div>
           </form>

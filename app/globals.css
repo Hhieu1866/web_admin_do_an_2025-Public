@@ -54,7 +54,6 @@
     --sidebar-primary-foreground: 0 0% 98%;
 
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
 
     --sidebar-border: 220 13% 91%;
@@ -118,64 +117,175 @@
   }
 }
 
-/* Quill Editor Content CSS */
-.content-view {
-  line-height: 1.4 !important;
+/* ============================
+   COMMON LIST STYLING (ul, ol)
+   ============================ */
+
+/* --- UL: danh sách chấm tròn --- */
+.ql-editor ul,
+.content-view ul,
+.prose ul {
+  list-style-type: disc !important;
+  padding-left: 2rem !important;
+  margin: 0.5rem 0 !important;
 }
 
-.content-view ol {
+.ql-editor ul li,
+.content-view ul li,
+.prose ul li {
+  position: relative !important;
+  list-style-type: disc !important;
+  padding-left: 0 !important;
+  margin-bottom: 0.3rem !important;
+}
+
+/* Ghi đè style cho bullets */
+.content-view ul li::before {
+  display: none !important;
+}
+
+.content-view li[data-list="bullet"] {
+  list-style-type: disc !important;
+}
+
+/* --- OL: danh sách số thứ tự --- */
+.ql-editor ol,
+.content-view ol,
+.prose ol {
   list-style-type: decimal !important;
-  padding-left: 1.5rem !important;
-  margin: 0.2rem 0 !important;
+  padding-left: 1.25rem !important;
+  margin: 0.5rem 0 !important;
 }
 
-.content-view ol li {
-  display: list-item !important;
+.ql-editor ol li,
+.content-view ol li,
+.prose ol li {
+  margin-left: 0 !important;
   padding-left: 0.3rem !important;
-  margin-bottom: 0.1rem !important;
+  margin-bottom: 0.3rem !important;
 }
 
+/* ============================
+   CLEAN-UP CÁC PSEUDO CỦA QUILL
+   ============================ */
+.ql-editor li[data-list="bullet"]::before,
+.ql-snow .ql-editor li[data-list="bullet"]::before,
+.ql-snow .ql-editor ul li::before {
+  content: none !important;
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+/* Thêm style mới cho content-view */
 .content-view ul {
   list-style-type: disc !important;
-  padding-left: 1.5rem !important;
-  margin: 0.2rem 0 !important;
 }
 
 .content-view ul li {
   display: list-item !important;
-  padding-left: 0.3rem !important;
-  margin-bottom: 0.1rem !important;
+  list-style-type: disc !important;
+  padding-left: 0 !important;
 }
 
+.content-view ul > li::before {
+  display: none !important;
+}
+
+.ql-editor .ql-bullet,
+.ql-editor li[data-list="bullet"],
+.content-view .ql-bullet,
+.content-view li[data-list="bullet"] {
+  padding-left: 0 !important;
+  text-indent: 0 !important;
+  list-style-type: disc !important;
+}
+
+/* Đảm bảo list-style-type được ưu tiên */
+.content-view ul,
+.content-view ul li {
+  list-style-type: disc !important;
+}
+
+/* ============================
+   STYLE BỔ SUNG CHO HEADINGS
+   ============================ */
+.ql-editor h1,
 .content-view h1,
-.content-view h2,
-.content-view h3,
-.content-view h4,
-.content-view h5,
-.content-view h6 {
-  margin: 0.6rem 0 0.3rem 0 !important;
+.prose h1 {
+  font-size: 2rem !important;
+  margin: 1rem 0 0.5rem 0 !important;
   font-weight: 600 !important;
 }
 
-.content-view p {
-  margin-bottom: 0.4rem !important;
+.ql-editor h2,
+.content-view h2,
+.prose h2 {
+  font-size: 1.6rem !important;
+  margin: 1rem 0 0.5rem 0 !important;
+  font-weight: 600 !important;
 }
 
-.ql-editor {
-  line-height: 1.4 !important;
+.ql-editor h3,
+.content-view h3,
+.prose h3 {
+  font-size: 1.4rem !important;
+  margin: 1rem 0 0.5rem 0 !important;
+  font-weight: 600 !important;
 }
 
-.ql-editor ol {
-  padding-left: 1.5em !important;
-  list-style-type: decimal !important;
-  margin: 0.2rem 0 !important;
+.ql-editor h4,
+.content-view h4,
+.prose h4 {
+  font-size: 1.2rem !important;
+  margin: 1rem 0 0.5rem 0 !important;
+  font-weight: 600 !important;
 }
 
-.ql-editor li {
-  display: list-item !important;
-  margin-bottom: 0.1rem !important;
+/* ============================
+   PARAGRAPH & SPACING
+   ============================ */
+.ql-editor p,
+.content-view p,
+.prose p {
+  margin-bottom: 0.75rem !important;
 }
 
-.ql-editor p {
-  margin-bottom: 0.3rem !important;
+.content-view p:last-child,
+.prose p:last-child {
+  margin-bottom: 0 !important;
+}
+
+.ql-editor,
+.content-view,
+.prose {
+  line-height: 1.5 !important;
+  font-size: 1rem !important;
+  max-width: none !important;
+}
+
+/* ============================
+   INDENT CẤP 1 (nếu có)
+   ============================ */
+.ql-editor ul.ql-indent-1,
+.ql-editor ol.ql-indent-1,
+.content-view ul.ql-indent-1,
+.content-view ol.ql-indent-1 {
+  padding-left: 2.5rem !important;
+}
+
+/* ============================
+   LIST MARKER (nếu dùng marker)
+   ============================ */
+.prose li::marker {
+  font-weight: 400 !important;
+}
+
+.prose ul li::marker {
+  color: currentColor !important;
+}
+
+.prose li {
+  margin-top: 0.2em !important;
+  margin-bottom: 0.2em !important;
 }

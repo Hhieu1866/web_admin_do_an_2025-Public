@@ -133,7 +133,8 @@ export const TextContentForm = ({ initialData, courseId, lessonId }) => {
       {!isEditing ? (
         <div className="mt-4">
           <div
-            className="text-sm prose max-w-none bg-white p-4 rounded content-view"
+            className="prose prose-sm max-w-full bg-white p-4 rounded content-view mx-auto"
+            style={{ width: "100%" }}
             dangerouslySetInnerHTML={{ __html: htmlContent }}
           />
         </div>
@@ -155,10 +156,11 @@ export const TextContentForm = ({ initialData, courseId, lessonId }) => {
                         modules={quillModules}
                         theme="snow"
                         placeholder="Nhập nội dung bài học..."
-                        className="min-h-[250px]"
+                        className="min-h-[300px]"
                         value={field.value}
                         onChange={handleQuillChange}
                         preserveWhitespace={true}
+                        style={{ maxWidth: "none" }}
                       />
                     </div>
                   </FormControl>
