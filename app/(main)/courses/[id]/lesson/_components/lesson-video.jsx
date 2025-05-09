@@ -2,12 +2,16 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import ReactPlayer from "react-player/youtube";
+import { Button } from "@/components/ui/button";
+import { CheckCircle, X } from "lucide-react";
+import { toast } from "sonner";
 
 export const LessonVideo = ({ courseId, lesson, module }) => {
   const [hasWindow, setHasWindow] = useState(false);
   const [started, setStarted] = useState(false);
   const [ended, setEnded] = useState(false);
   const [duration, setDuration] = useState(0);
+  const [loading, setLoading] = useState(false);
   const hasInitialized = useRef(false);
 
   const router = useRouter();
@@ -20,6 +24,7 @@ export const LessonVideo = ({ courseId, lesson, module }) => {
 
   useEffect(() => {
     async function updateLessonWatch() {
+      setLoading(true);
       const response = await fetch("/api/lesson-watch", {
         method: "POST",
         headers: {
@@ -38,12 +43,14 @@ export const LessonVideo = ({ courseId, lesson, module }) => {
         console.log(result);
         setStarted(false);
       }
+      setLoading(false);
     }
     started && updateLessonWatch();
   }, [started, courseId, lesson.id, module]);
 
   useEffect(() => {
     async function updateLessonWatch() {
+      setLoading(true);
       const response = await fetch("/api/lesson-watch", {
         method: "POST",
         headers: {
@@ -55,13 +62,16 @@ export const LessonVideo = ({ courseId, lesson, module }) => {
           moduleSlug: module,
           state: "completed",
           lastTime: duration,
+          unlockNext: true,
         }),
       });
       if (response.status === 200) {
         const result = await response.text();
         setEnded(false);
+        toast.success("Bài học đã được đánh dấu hoàn thành!");
         router.refresh();
       }
+      setLoading(false);
     }
     ended && updateLessonWatch();
   }, [ended, courseId, lesson.id, module, duration, router]);
@@ -76,13 +86,6 @@ export const LessonVideo = ({ courseId, lesson, module }) => {
     ) {
       hasInitialized.current = true; // Đánh dấu đã gửi yêu cầu
       setStarted(true);
-
-      // Sau 30 giây, tự động đánh dấu là đã hoàn thành
-      const timer = setTimeout(() => {
-        setEnded(true);
-      }, 30000);
-
-      return () => clearTimeout(timer);
     }
   }, [lesson.content_type, hasWindow]);
 
@@ -105,6 +108,11 @@ export const LessonVideo = ({ courseId, lesson, module }) => {
     // console.log("handleOnProgress");
   }
 
+  // Hàm để đánh dấu hoàn thành bài học thủ công
+  const handleCompleteLesson = () => {
+    setEnded(true);
+  };
+
   // Hiển thị nội dung văn bản hoặc video dựa vào content_type
   if (lesson.content_type === "text") {
     return (
@@ -114,6 +122,24 @@ export const LessonVideo = ({ courseId, lesson, module }) => {
           style={{ maxWidth: "1000px" }}
           dangerouslySetInnerHTML={{ __html: lesson.text_content }}
         />
+
+        <div className="mt-8 text-center">
+          <Button
+            onClick={handleCompleteLesson}
+            disabled={loading || lesson?.state === "completed"}
+            className="gap-2"
+          >
+            {loading ? (
+              "Đang xử lý..."
+            ) : lesson?.state === "completed" ? (
+              <>
+                <CheckCircle size={16} /> Đã hoàn thành
+              </>
+            ) : (
+              "Đánh dấu đã hoàn thành"
+            )}
+          </Button>
+        </div>
       </div>
     );
   }
@@ -122,16 +148,36 @@ export const LessonVideo = ({ courseId, lesson, module }) => {
   return (
     <>
       {hasWindow && (
-        <ReactPlayer
-          url={lesson.video_url}
-          width="100%"
-          height="470px"
-          controls={true}
-          onStart={handleOnStart}
-          onDuration={handleOnDuration}
-          onProgress={handleOnProgress}
-          onEnded={handleOnEnded}
-        />
+        <div className="flex flex-col">
+          <ReactPlayer
+            url={lesson.video_url}
+            width="100%"
+            height="470px"
+            controls={true}
+            onStart={handleOnStart}
+            onDuration={handleOnDuration}
+            onProgress={handleOnProgress}
+            onEnded={handleOnEnded}
+          />
+
+          <div className="mt-4 text-center">
+            <Button
+              onClick={handleCompleteLesson}
+              disabled={loading || lesson?.state === "completed"}
+              className="gap-2"
+            >
+              {loading ? (
+                "Đang xử lý..."
+              ) : lesson?.state === "completed" ? (
+                <>
+                  <CheckCircle size={16} /> Đã hoàn thành
+                </>
+              ) : (
+                "Đánh dấu đã hoàn thành"
+              )}
+            </Button>
+          </div>
+        </div>
       )}
     </>
   );

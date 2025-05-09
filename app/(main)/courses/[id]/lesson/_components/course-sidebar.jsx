@@ -76,6 +76,8 @@ export const CourseSidebar = async ({ courseId }) => {
               }).lean();
               if (watch?.state === "completed") {
                 lesson.state = "completed";
+              } else if (watch?.state === "started") {
+                lesson.state = "started";
               }
               return lesson;
             }),
