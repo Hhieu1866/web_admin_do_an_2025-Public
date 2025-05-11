@@ -9,7 +9,7 @@ export const SidebarLessons = ({ courseId, lessons, module }) => {
 
   return (
     <AccordionContent>
-      <div className="flex flex-col w-full gap-3">
+      <div className="flex w-full flex-col gap-3">
         {allLessons.map((lesson) => (
           <SidebarLessonItem
             key={lesson.id}

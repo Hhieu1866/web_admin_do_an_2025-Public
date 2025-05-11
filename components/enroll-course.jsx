@@ -101,13 +101,13 @@ const EnrollCourse = ({ asLink, courseId }) => {
         variant={asLink ? "ghost" : "default"}
         className={
           asLink
-            ? "text-xs text-emerald-700 h-7 gap-1"
+            ? "h-7 gap-1 text-xs text-emerald-700"
             : cn(buttonVariants({ size: "lg" }))
         }
         onClick={() => router.push(`/courses/${courseId}/lesson`)}
       >
         Vào học ngay
-        <ArrowRight className={asLink ? "w-3" : "w-4 ml-2"} />
+        <ArrowRight className={asLink ? "w-3" : "ml-2 w-4"} />
       </Button>
     );
   }
@@ -119,7 +119,7 @@ const EnrollCourse = ({ asLink, courseId }) => {
         <Button
           onClick={handleEnroll}
           variant="ghost"
-          className="text-xs text-sky-700 h-7 gap-1"
+          className="h-7 gap-1 text-xs text-sky-700"
           disabled={isLoading}
         >
           {isLoading ? (
@@ -142,7 +142,7 @@ const EnrollCourse = ({ asLink, courseId }) => {
         >
           {isLoading ? (
             <>
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               <span>Đang xử lý...</span>
             </>
           ) : (

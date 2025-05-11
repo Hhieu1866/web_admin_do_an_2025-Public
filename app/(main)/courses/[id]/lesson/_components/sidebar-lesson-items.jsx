@@ -38,32 +38,29 @@ export const SidebarLessonItem = ({ courseId, lesson, module }) => {
           : `/courses/${courseId}/lesson?name=${lesson.slug}&module=${module}`
       }
       className={cn(
-        "flex items-center gap-x-2 text-slate-500 text-sm font-[500] transition-all hover:text-slate-600 group relative",
+        "group relative flex items-center gap-x-2 text-sm font-[500] text-slate-500 transition-all hover:text-slate-600",
         isLocked(lesson)
-          ? "text-slate-400 hover:text-slate-400 cursor-default"
+          ? "cursor-default text-slate-400 hover:text-slate-400"
           : isCompleted(lesson)
-          ? "text-emerald-700 hover:text-emerald-700"
-          : isStarted(lesson) && "text-blue-600 hover:text-blue-700",
+            ? "text-emerald-700 hover:text-emerald-700"
+            : isStarted(lesson) && "text-blue-600 hover:text-blue-700",
       )}
       title={getStatusText(lesson)}
     >
       <div className="flex items-center gap-x-2">
         {isLocked(lesson) ? (
-          <Lock size={16} className={cn("text-slate-400 flex-shrink-0")} />
+          <Lock size={16} className={cn("flex-shrink-0 text-slate-400")} />
         ) : isCompleted(lesson) ? (
           <CheckCircle
             size={16}
-            className={cn("text-emerald-700 flex-shrink-0")}
+            className={cn("flex-shrink-0 text-emerald-700")}
           />
         ) : (
-          <PlayCircle
-            size={16}
-            className={cn("text-blue-600 flex-shrink-0")}
-          />
+          <PlayCircle size={16} className={cn("flex-shrink-0 text-blue-600")} />
         )}
         <span className="truncate">{lesson.title}</span>
       </div>
-      <span className="absolute left-0 -top-6 bg-slate-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+      <span className="pointer-events-none absolute -top-6 left-0 rounded bg-slate-800 px-2 py-1 text-xs text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100">
         {getStatusText(lesson)}
       </span>
     </Link>

@@ -37,8 +37,26 @@ export const CourseSidebar = async ({ courseId }) => {
 
   const totalModules = course?.modules ? course.modules.length : 0;
 
-  const totalProgress =
-    totalModules > 0 ? (totalCompletedModules / totalModules) * 100 : 0;
+  let totalLessons = 0;
+  let totalCompletedLessons = report?.totalCompletedLessons?.length || 0;
+
+  if (course?.modules && Array.isArray(course.modules)) {
+    course.modules.forEach((module) => {
+      if (module.lessonIds && Array.isArray(module.lessonIds)) {
+        totalLessons += module.lessonIds.length;
+      }
+    });
+  }
+
+  let totalProgress = 0;
+
+  if (totalModules > 0 && totalCompletedModules > 0) {
+    totalProgress = (totalCompletedModules / totalModules) * 100;
+  } else if (totalLessons > 0 && totalCompletedLessons > 0) {
+    totalProgress = (totalCompletedLessons / totalLessons) * 100;
+  }
+
+  totalProgress = Math.max(0, Math.min(100, totalProgress));
 
   // Sanitize fucntion for handle ObjectID and Buffer
   function sanitizeData(data) {
@@ -103,20 +121,25 @@ export const CourseSidebar = async ({ courseId }) => {
 
   return (
     <>
-      <div className="h-full border-r flex flex-col overflow-y-auto shadow-sm">
-        <div className="p-8 flex flex-col border-b">
+      <div className="flex h-full flex-col overflow-y-auto border-r shadow-sm">
+        <div className="flex flex-col border-b p-8">
           <h1 className="font-semibold">{course?.title}</h1>
           {/* Check purchase */}
           {
             <div className="mt-10">
               <CourseProgress variant="success" value={totalProgress} />
+              {totalCompletedLessons > 0 && (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {totalCompletedLessons}/{totalLessons} bài học đã hoàn thành
+                </p>
+              )}
             </div>
           }
         </div>
 
         <SidebarModules courseId={courseId} modules={updatedallModules} />
 
-        <div className="w-full px-4 lg:px-14 pt-10 border-t">
+        <div className="w-full border-t px-4 pt-10 lg:px-14">
           {quizSet && (
             <Quiz
               courseId={courseId}
@@ -126,7 +149,7 @@ export const CourseSidebar = async ({ courseId }) => {
           )}
         </div>
 
-        <div className="w-full px-6 mb-10">
+        <div className="mb-10 w-full px-6">
           <GiveReview courseId={courseId} loginid={loggedinUser.id} />
           <DownloadCertificate
             courseId={courseId}

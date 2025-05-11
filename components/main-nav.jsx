@@ -3,7 +3,6 @@ import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import Logo from "./logo";
 import { cn } from "@/lib/utils";
-
 import { X } from "lucide-react";
 import { Button, buttonVariants } from "./ui/button";
 import { Menu } from "lucide-react";
@@ -54,7 +53,7 @@ const MainNav = ({ items, children }) => {
                 key={index}
                 href={item.disable ? "#" : item.href}
                 className={cn(
-                  "flex items-center text-lg font-medium transition-colors hover:text-foreground/80 sm:text-sm ",
+                  "flex items-center text-lg font-medium transition-colors hover:text-foreground/80 sm:text-sm",
                 )}
               >
                 {item.title}
@@ -70,7 +69,7 @@ const MainNav = ({ items, children }) => {
 
       <nav className="flex items-center gap-3">
         {!loginSession && (
-          <div className="items-center gap-3 hidden lg:flex">
+          <div className="hidden items-center gap-3 lg:flex">
             <Link
               href="/login"
               className={cn(buttonVariants({ size: "sm" }), "px-4")}
@@ -79,9 +78,7 @@ const MainNav = ({ items, children }) => {
             </Link>
             <Link
               href="/register"
-              className={cn(
-                buttonVariants({ variant: "outline", size: "sm" }),
-              )}
+              className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
             >
               Register
             </Link>
@@ -108,7 +105,7 @@ const MainNav = ({ items, children }) => {
               </div>
             </DropdownMenuTrigger>
 
-            <DropdownMenuContent align="end" className="w-56 mt-4">
+            <DropdownMenuContent align="end" className="mt-4 w-56">
               <DropdownMenuItem className="cursor-pointer" asChild>
                 <Link href="/account">Profile</Link>
               </DropdownMenuItem>

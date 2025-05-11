@@ -1,15 +1,11 @@
-import { CourseProgress } from "@/components/course-progress";
-import { cn } from "@/lib/utils";
-import { PlayCircle } from "lucide-react";
-import { Lock } from "lucide-react";
-import { CheckCircle } from "lucide-react";
-import { CourseSidebarMobile } from "./_components/course-sidebar-mobile";
-import { CourseSidebar } from "./_components/course-sidebar";
 import { getLoggedInUser } from "@/lib/loggedin-user";
 import { redirect } from "next/navigation";
 import { hasEnrollmentForCourse } from "@/queries/enrollments";
+import { LessonSidebar } from "./_components/lesson-sidebar";
+import { LessonHeader } from "./_components/lesson-header";
+import { LessonSidebarMobile } from "./_components/lesson-sidebar-mobile";
 
-const CourseLayout = async ({ children, params }) => {
+const LessonLayout = async ({ children, params }) => {
   const id = params.id;
   const loggedinUser = await getLoggedInUser();
   if (!loggedinUser) {
@@ -22,26 +18,25 @@ const CourseLayout = async ({ children, params }) => {
   }
 
   return (
-    <div className="">
-      <div className="h-[80px] lg:pl-96 fixed top-[60px] inset-y-0 w-full z-10">
-        <div className="flex lg:hidden p-4 border-b h-full items-center bg-white shadow-sm relative">
-          {/* Course Sidebar For Mobile */}
-          <CourseSidebarMobile courseId={id} />
-          {/* <NavbarRoutes /> */}
-        </div>
+    <div className="flex h-screen flex-col">
+      {/* Header mới cho trang bài học */}
+      {/* <LessonHeader courseId={id} /> */}
+
+      {/* Sidebar Mobile */}
+      <div className="block lg:hidden">
+        <LessonSidebarMobile courseId={id} />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12">
-        <div className="hidden lg:flex h-full w-96 flex-col inset-y-0 z-50">
-          {/* sidebar starts */}
-          <CourseSidebar courseId={id} />
-          {/* sidebar ends */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Content Area */}
+        <main className="flex-1 overflow-y-auto px-4 py-6">{children}</main>
+        {/* Sidebar bên phải (ẩn trên mobile) */}
+        <div className="hidden w-[380px] flex-shrink-0 overflow-y-auto border-l lg:block">
+          <LessonSidebar courseId={id} />
         </div>
-        <main className="lg:pl-96 pt-[80px] lg:pt-[20px] h-full col-span-10 px-4">
-          {children}
-        </main>
       </div>
     </div>
   );
 };
-export default CourseLayout;
+
+export default LessonLayout;

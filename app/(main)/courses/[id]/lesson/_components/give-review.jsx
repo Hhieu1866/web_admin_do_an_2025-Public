@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { ReviewModal } from "./review-modal";
 import { useState } from "react";
+import { ThumbsUp } from "lucide-react";
 
 export const GiveReview = ({ courseId, loginid }) => {
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
@@ -11,9 +12,11 @@ export const GiveReview = ({ courseId, loginid }) => {
       <Button
         onClick={() => setIsReviewModalOpen(true)}
         variant="outline"
-        className="w-full mt-6"
+        className="w-full justify-start gap-2"
+        size="lg"
       >
-        Give Review
+        <ThumbsUp className="h-4 w-4 text-primary" />
+        Đánh giá khóa học
       </Button>
       <ReviewModal
         open={isReviewModalOpen}

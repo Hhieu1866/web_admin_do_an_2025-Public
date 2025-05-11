@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import ReactPlayer from "react-player/youtube";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, X } from "lucide-react";
+import { CheckCircle, PlayCircle } from "lucide-react";
 import { toast } from "sonner";
 
 export const LessonVideo = ({ courseId, lesson, module }) => {
@@ -12,7 +12,9 @@ export const LessonVideo = ({ courseId, lesson, module }) => {
   const [ended, setEnded] = useState(false);
   const [duration, setDuration] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [playing, setPlaying] = useState(false);
   const hasInitialized = useRef(false);
+  const playerRef = useRef(null);
 
   const router = useRouter();
 
@@ -116,24 +118,27 @@ export const LessonVideo = ({ courseId, lesson, module }) => {
   // Hiển thị nội dung văn bản hoặc video dựa vào content_type
   if (lesson.content_type === "text") {
     return (
-      <div className="bg-white rounded-md shadow-sm p-4 min-h-[470px] w-full">
+      <div className="min-h-[400px] w-full rounded-lg border border-gray-100 bg-white p-6 shadow-sm">
         <div
-          className="prose prose-lg max-w-none content-view mx-auto"
-          style={{ maxWidth: "1000px" }}
+          className="content-view prose prose-lg mx-auto max-w-none"
           dangerouslySetInnerHTML={{ __html: lesson.text_content }}
         />
 
-        <div className="mt-8 text-center">
+        <div className="mt-6 flex justify-center">
           <Button
             onClick={handleCompleteLesson}
             disabled={loading || lesson?.state === "completed"}
             className="gap-2"
+            size="lg"
           >
             {loading ? (
-              "Đang xử lý..."
+              <div className="flex items-center gap-2">
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                <span>Đang xử lý...</span>
+              </div>
             ) : lesson?.state === "completed" ? (
               <>
-                <CheckCircle size={16} /> Đã hoàn thành
+                <CheckCircle className="h-4 w-4" /> Đã hoàn thành
               </>
             ) : (
               "Đánh dấu đã hoàn thành"
@@ -144,38 +149,74 @@ export const LessonVideo = ({ courseId, lesson, module }) => {
     );
   }
 
+  // Xử lý trạng thái trước khi play video
+  const handleCustomPlay = () => {
+    setPlaying(true);
+  };
+
   // Mặc định hiển thị video
   return (
     <>
       {hasWindow && (
-        <div className="flex flex-col">
+        <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-black">
+          {!playing && (
+            <div
+              className="absolute inset-0 flex cursor-pointer items-center justify-center bg-black bg-opacity-50"
+              onClick={handleCustomPlay}
+            >
+              <div className="flex flex-col items-center gap-4">
+                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-white bg-opacity-20 transition-all hover:bg-opacity-30">
+                  <PlayCircle className="h-16 w-16 text-white" />
+                </div>
+                <span className="text-sm font-medium text-white">
+                  Nhấn để phát
+                </span>
+              </div>
+            </div>
+          )}
+
           <ReactPlayer
+            ref={playerRef}
             url={lesson.video_url}
             width="100%"
-            height="470px"
-            controls={true}
+            height="100%"
+            playing={playing}
+            controls={playing}
             onStart={handleOnStart}
             onDuration={handleOnDuration}
             onProgress={handleOnProgress}
             onEnded={handleOnEnded}
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              opacity: playing ? 1 : 0,
+            }}
           />
 
-          <div className="mt-4 text-center">
-            <Button
-              onClick={handleCompleteLesson}
-              disabled={loading || lesson?.state === "completed"}
-              className="gap-2"
-            >
-              {loading ? (
-                "Đang xử lý..."
-              ) : lesson?.state === "completed" ? (
-                <>
-                  <CheckCircle size={16} /> Đã hoàn thành
-                </>
-              ) : (
-                "Đánh dấu đã hoàn thành"
-              )}
-            </Button>
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 transform">
+            {playing && (
+              <Button
+                onClick={handleCompleteLesson}
+                disabled={loading || lesson?.state === "completed"}
+                className="gap-2"
+                variant={lesson?.state === "completed" ? "outline" : "default"}
+                size="sm"
+              >
+                {loading ? (
+                  <div className="flex items-center gap-2">
+                    <div className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    <span>Đang xử lý...</span>
+                  </div>
+                ) : lesson?.state === "completed" ? (
+                  <>
+                    <CheckCircle className="h-3 w-3" /> Đã hoàn thành
+                  </>
+                ) : (
+                  "Đánh dấu đã hoàn thành"
+                )}
+              </Button>
+            )}
           </div>
         </div>
       )}

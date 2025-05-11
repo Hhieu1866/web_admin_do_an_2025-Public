@@ -514,7 +514,7 @@ export default function UsersPage() {
 
     if (role === "instructor") {
       return (
-        <Badge className="font-medium bg-blue-500 hover:bg-blue-600">
+        <Badge className="bg-blue-500 font-medium hover:bg-blue-600">
           {roleInfo.label}
         </Badge>
       );
@@ -522,7 +522,7 @@ export default function UsersPage() {
 
     if (role === "student") {
       return (
-        <Badge className="font-medium bg-green-500 hover:bg-green-600">
+        <Badge className="bg-green-500 font-medium hover:bg-green-600">
           {roleInfo.label}
         </Badge>
       );
@@ -543,11 +543,11 @@ export default function UsersPage() {
       return (
         <TableRow
           key={userId || `user-${index}`}
-          className="hover:bg-muted/30 cursor-pointer transition-colors group"
+          className="group cursor-pointer transition-colors hover:bg-muted/30"
         >
-          <TableCell className="pl-3 py-2.5">
+          <TableCell className="py-2.5 pl-3">
             <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-full bg-primary/10 text-primary flex items-center justify-center overflow-hidden border border-primary/20 ring-4 ring-transparent group-hover:ring-primary/5 transition-all duration-200">
+              <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-primary/20 bg-primary/10 text-primary ring-4 ring-transparent transition-all duration-200 group-hover:ring-primary/5">
                 {user.profilePicture ? (
                   <img
                     src={user.profilePicture}
@@ -559,7 +559,7 @@ export default function UsersPage() {
                 )}
               </div>
               <div>
-                <div className="font-medium text-sm">
+                <div className="text-sm font-medium">
                   {user.firstName && user.lastName
                     ? `${user.firstName} ${user.lastName}`
                     : "Chưa cập nhật"}
@@ -570,10 +570,10 @@ export default function UsersPage() {
               </div>
             </div>
           </TableCell>
-          <TableCell className="font-medium text-sm py-2.5">
+          <TableCell className="py-2.5 text-sm font-medium">
             {user.email}
           </TableCell>
-          <TableCell className="text-sm text-muted-foreground py-2.5">
+          <TableCell className="py-2.5 text-sm text-muted-foreground">
             {user.createdAt
               ? format(new Date(user.createdAt), "dd/MM/yyyy")
               : "Chưa có dữ liệu"}
@@ -597,14 +597,14 @@ export default function UsersPage() {
             >
               <SelectTrigger
                 className={cn(
-                  "w-[120px] h-8 text-sm font-medium transition-colors",
+                  "h-8 w-[120px] text-sm font-medium transition-colors",
                   user.role === "admin"
-                    ? "bg-destructive/10 text-destructive border-destructive/20 hover:bg-destructive/20"
+                    ? "border-destructive/20 bg-destructive/10 text-destructive hover:bg-destructive/20"
                     : user.role === "instructor"
-                    ? "bg-blue-100 text-blue-600 border-blue-200 hover:bg-blue-200"
-                    : user.role === "student"
-                    ? "bg-green-100 text-green-600 border-green-200 hover:bg-green-200"
-                    : "bg-muted text-muted-foreground border-muted-foreground/20 hover:bg-muted/70",
+                      ? "border-blue-200 bg-blue-100 text-blue-600 hover:bg-blue-200"
+                      : user.role === "student"
+                        ? "border-green-200 bg-green-100 text-green-600 hover:bg-green-200"
+                        : "border-muted-foreground/20 bg-muted text-muted-foreground hover:bg-muted/70",
                 )}
               >
                 <SelectValue>
@@ -639,7 +639,7 @@ export default function UsersPage() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 rounded-full hover:bg-muted opacity-70 group-hover:opacity-100 transition-opacity"
+                  className="h-8 w-8 rounded-full opacity-70 transition-opacity hover:bg-muted group-hover:opacity-100"
                 >
                   <span className="sr-only">Thao tác</span>
                   <MoreHorizontal className="h-4 w-4" />
@@ -662,7 +662,7 @@ export default function UsersPage() {
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  className="text-destructive focus:text-destructive cursor-pointer"
+                  className="cursor-pointer text-destructive focus:text-destructive"
                   onClick={() => handleDeleteDialog(user)}
                 >
                   <Trash2 className="mr-2 h-4 w-4" />
@@ -713,18 +713,18 @@ export default function UsersPage() {
   return (
     <div className="space-y-6">
       {/* Page header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-8">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between md:gap-8">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground mb-1">
+          <h1 className="mb-1 text-2xl font-bold tracking-tight text-foreground md:text-3xl">
             Quản lý người dùng
           </h1>
-          <p className="text-sm md:text-base text-muted-foreground">
+          <p className="text-sm text-muted-foreground md:text-base">
             Quản lý và phân quyền cho {totalItems} người dùng trong hệ thống
           </p>
         </div>
         <Button
           onClick={() => setIsAddUserOpen(true)}
-          className="h-10 px-4 gap-2 bg-primary text-white hover:bg-primary/90 self-start md:self-auto shadow-sm transition-all duration-200"
+          className="h-10 gap-2 self-start bg-primary px-4 text-white shadow-sm transition-all duration-200 hover:bg-primary/90 md:self-auto"
         >
           <UserPlus className="h-4 w-4" />
           <span>Thêm người dùng</span>
@@ -732,13 +732,13 @@ export default function UsersPage() {
       </div>
 
       {/* Thanh tìm kiếm và lọc đơn giản */}
-      <div className="flex flex-col sm:flex-row items-center gap-3">
+      <div className="flex flex-col items-center gap-3 sm:flex-row">
         <div className="relative w-full sm:flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             type="search"
             placeholder="Tìm kiếm người dùng..."
-            className="pl-9 w-full h-11" // tăng chiều cao
+            className="h-11 w-full pl-9" // tăng chiều cao
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             onKeyDown={(e) => {
@@ -750,7 +750,7 @@ export default function UsersPage() {
         </div>
 
         <Select value={roleFilter} onValueChange={handleRoleFilterChange}>
-          <SelectTrigger className="w-[140px] sm:w-[160px] h-11">
+          <SelectTrigger className="h-11 w-[140px] sm:w-[160px]">
             {" "}
             {/* tăng chiều cao */}
             <SelectValue placeholder="Tất cả vai trò" />
@@ -767,8 +767,8 @@ export default function UsersPage() {
       </div>
 
       {/* Bảng người dùng */}
-      <Card className="border shadow-sm overflow-hidden">
-        <CardHeader className="px-4 py-3 flex flex-row items-center justify-between bg-muted/20 border-b">
+      <Card className="overflow-hidden border shadow-sm">
+        <CardHeader className="flex flex-row items-center justify-between border-b bg-muted/20 px-4 py-3">
           <div className="flex items-center gap-2">
             <UserCog className="h-4 w-4 text-muted-foreground" />
             <div>
@@ -805,20 +805,20 @@ export default function UsersPage() {
           <div className="overflow-x-auto">
             <Table className="w-full">
               <TableHeader>
-                <TableRow className="hover:bg-transparent border-b bg-muted/30">
-                  <TableHead className="font-medium text-xs uppercase tracking-wider text-muted-foreground w-[200px] pl-3 py-2.5">
+                <TableRow className="border-b bg-muted/30 hover:bg-transparent">
+                  <TableHead className="w-[200px] py-2.5 pl-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
                     Người dùng
                   </TableHead>
-                  <TableHead className="font-medium text-xs uppercase tracking-wider text-muted-foreground w-[28%] py-2.5">
+                  <TableHead className="w-[28%] py-2.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">
                     Email
                   </TableHead>
-                  <TableHead className="font-medium text-xs uppercase tracking-wider text-muted-foreground w-[130px] py-2.5">
+                  <TableHead className="w-[130px] py-2.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">
                     Ngày tạo
                   </TableHead>
-                  <TableHead className="font-medium text-xs uppercase tracking-wider text-muted-foreground w-[110px] py-2.5">
+                  <TableHead className="w-[110px] py-2.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">
                     Vai trò
                   </TableHead>
-                  <TableHead className="text-right font-medium text-xs uppercase tracking-wider text-muted-foreground w-[70px] pr-3 py-2.5">
+                  <TableHead className="w-[70px] py-2.5 pr-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
                     Thao tác
                   </TableHead>
                 </TableRow>
@@ -836,14 +836,12 @@ export default function UsersPage() {
                 ) : users.length === 0 ? (
                   <TableRow key="empty-row">
                     <TableCell colSpan={5} className="h-24 text-center">
-                      <div className="flex flex-col items-center justify-center gap-2 text-muted-foreground p-6">
-                        <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
+                      <div className="flex flex-col items-center justify-center gap-2 p-6 text-muted-foreground">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
                           <User className="h-6 w-6 stroke-1" />
                         </div>
-                        <p className="font-medium">
-                          Không tìm thấy người dùng
-                        </p>
-                        <p className="text-sm text-center max-w-md">
+                        <p className="font-medium">Không tìm thấy người dùng</p>
+                        <p className="max-w-md text-center text-sm">
                           Không có người dùng nào phù hợp với bộ lọc hiện tại.
                           Thử thay đổi từ khóa tìm kiếm hoặc bộ lọc.
                         </p>
@@ -872,7 +870,7 @@ export default function UsersPage() {
 
           {/* Phân trang */}
           {totalPages > 1 && (
-            <CardFooter className="border-t py-5 px-6 flex justify-center">
+            <CardFooter className="flex justify-center border-t px-6 py-5">
               <Pagination>
                 <PaginationContent>
                   <PaginationItem>
@@ -894,7 +892,7 @@ export default function UsersPage() {
                         <PaginationLink
                           onClick={() => handlePageChange(pageNumber)}
                           isActive={page === pageNumber}
-                          className="cursor-pointer hover:bg-muted transition-colors"
+                          className="cursor-pointer transition-colors hover:bg-muted"
                         >
                           {pageNumber}
                         </PaginationLink>
@@ -913,7 +911,7 @@ export default function UsersPage() {
                         <PaginationLink
                           onClick={() => handlePageChange(totalPages)}
                           isActive={page === totalPages}
-                          className="cursor-pointer hover:bg-muted transition-colors"
+                          className="cursor-pointer transition-colors hover:bg-muted"
                         >
                           {totalPages}
                         </PaginationLink>
@@ -945,7 +943,7 @@ export default function UsersPage() {
           <DialogContent className="sm:max-w-md">
             <DialogHeader className="border-b pb-4">
               <DialogTitle className="flex items-center gap-2 text-xl">
-                <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
                   <User className="h-4 w-4" />
                 </div>
                 Chi tiết người dùng
@@ -954,10 +952,10 @@ export default function UsersPage() {
                 Thông tin chi tiết về người dùng
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-6 py-6 px-2 max-h-[70vh] overflow-y-auto">
+            <div className="max-h-[70vh] space-y-6 overflow-y-auto px-2 py-6">
               {/* Avatar và thông tin cơ bản */}
-              <div className="flex flex-col items-center gap-3 pb-6 border-b">
-                <div className="h-24 w-24 rounded-full bg-primary/10 text-primary flex items-center justify-center overflow-hidden border-2 border-primary/20 shadow-sm">
+              <div className="flex flex-col items-center gap-3 border-b pb-6">
+                <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-2 border-primary/20 bg-primary/10 text-primary shadow-sm">
                   {currentUser.profilePicture ? (
                     <img
                       src={currentUser.profilePicture}
@@ -969,7 +967,7 @@ export default function UsersPage() {
                   )}
                 </div>
                 <div className="text-center">
-                  <h3 className="font-semibold text-lg">
+                  <h3 className="text-lg font-semibold">
                     {currentUser.firstName && currentUser.lastName
                       ? `${currentUser.firstName} ${currentUser.lastName}`
                       : "Chưa cập nhật"}
@@ -980,8 +978,8 @@ export default function UsersPage() {
 
               {/* Thông tin chi tiết */}
               <div className="space-y-4">
-                <div className="bg-muted/40 rounded-lg p-4">
-                  <h4 className="text-sm font-medium text-muted-foreground mb-3">
+                <div className="rounded-lg bg-muted/40 p-4">
+                  <h4 className="mb-3 text-sm font-medium text-muted-foreground">
                     Thông tin cơ bản
                   </h4>
 
@@ -990,7 +988,7 @@ export default function UsersPage() {
                       <span className="text-sm font-medium text-muted-foreground">
                         ID:
                       </span>
-                      <span className="col-span-2 text-sm break-all font-mono bg-muted p-1.5 rounded">
+                      <span className="col-span-2 break-all rounded bg-muted p-1.5 font-mono text-sm">
                         {currentUser._id}
                       </span>
                     </div>
@@ -1041,18 +1039,18 @@ export default function UsersPage() {
                 </div>
 
                 {currentUser.bio && (
-                  <div className="bg-muted/40 rounded-lg p-4">
-                    <h4 className="text-sm font-medium text-muted-foreground mb-3">
+                  <div className="rounded-lg bg-muted/40 p-4">
+                    <h4 className="mb-3 text-sm font-medium text-muted-foreground">
                       Tiểu sử
                     </h4>
-                    <div className="text-sm whitespace-pre-line bg-background p-3 rounded border">
+                    <div className="whitespace-pre-line rounded border bg-background p-3 text-sm">
                       {currentUser.bio}
                     </div>
                   </div>
                 )}
               </div>
             </div>
-            <DialogFooter className="flex justify-between border-t pt-4 px-2 gap-2">
+            <DialogFooter className="flex justify-between gap-2 border-t px-2 pt-4">
               <Button
                 onClick={() => handleEditUser(currentUser)}
                 variant="outline"
@@ -1073,7 +1071,7 @@ export default function UsersPage() {
           <DialogContent className="sm:max-w-md">
             <DialogHeader className="border-b pb-4">
               <DialogTitle className="flex items-center gap-2 text-xl">
-                <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
                   <Pencil className="h-4 w-4" />
                 </div>
                 Chỉnh sửa thông tin
@@ -1083,8 +1081,8 @@ export default function UsersPage() {
                 <span className="font-medium">{currentUser.email}</span>
               </DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleSaveEdit} className="space-y-5 py-6 px-2">
-              <div className="space-y-4 bg-muted/40 rounded-lg p-5">
+            <form onSubmit={handleSaveEdit} className="space-y-5 px-2 py-6">
+              <div className="space-y-4 rounded-lg bg-muted/40 p-5">
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="edit-email" className="text-right text-sm">
                     Email <span className="text-destructive">*</span>
@@ -1103,7 +1101,7 @@ export default function UsersPage() {
                       }
                       required
                     />
-                    <p className="text-xs text-muted-foreground mt-1">
+                    <p className="mt-1 text-xs text-muted-foreground">
                       Email dùng để đăng nhập
                     </p>
                   </div>
@@ -1131,10 +1129,7 @@ export default function UsersPage() {
                 </div>
 
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <Label
-                    htmlFor="edit-lastName"
-                    className="text-right text-sm"
-                  >
+                  <Label htmlFor="edit-lastName" className="text-right text-sm">
                     Tên
                   </Label>
                   <Input
@@ -1152,7 +1147,7 @@ export default function UsersPage() {
                 </div>
               </div>
 
-              <DialogFooter className="pt-4 border-t flex justify-between px-2">
+              <DialogFooter className="flex justify-between border-t px-2 pt-4">
                 <Button
                   type="button"
                   variant="outline"
@@ -1164,7 +1159,7 @@ export default function UsersPage() {
                 <Button
                   type="submit"
                   disabled={isSubmitting}
-                  className="gap-2 relative px-4"
+                  className="relative gap-2 px-4"
                 >
                   {isSubmitting ? (
                     <>
@@ -1188,9 +1183,9 @@ export default function UsersPage() {
       {currentUser && (
         <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
           <AlertDialogContent className="max-w-md">
-            <AlertDialogHeader className="pb-4 border-b">
+            <AlertDialogHeader className="border-b pb-4">
               <AlertDialogTitle className="flex items-center gap-2 text-xl">
-                <div className="h-8 w-8 rounded-full bg-destructive/10 text-destructive flex items-center justify-center">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-destructive/10 text-destructive">
                   <AlertTriangle className="h-4 w-4" />
                 </div>
                 Xác nhận xóa người dùng
@@ -1200,18 +1195,18 @@ export default function UsersPage() {
                   Bạn có chắc chắn muốn xóa người dùng{" "}
                   <span className="font-medium">{currentUser.email}</span>?
                 </p>
-                <div className="bg-destructive/10 border border-destructive/20 text-destructive rounded-md p-3 text-sm mt-3">
-                  <AlertTriangle className="h-4 w-4 inline-block mr-2" />
-                  Hành động này không thể hoàn tác và sẽ xóa tất cả dữ liệu
-                  liên quan đến người dùng này.
+                <div className="mt-3 rounded-md border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive">
+                  <AlertTriangle className="mr-2 inline-block h-4 w-4" />
+                  Hành động này không thể hoàn tác và sẽ xóa tất cả dữ liệu liên
+                  quan đến người dùng này.
                 </div>
               </AlertDialogDescription>
             </AlertDialogHeader>
-            <AlertDialogFooter className="border-t pt-4 mt-2 gap-2 px-2 flex justify-between">
+            <AlertDialogFooter className="mt-2 flex justify-between gap-2 border-t px-2 pt-4">
               <AlertDialogCancel className="relative">Hủy</AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleDeleteUser}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90 gap-2 relative"
+                className="relative gap-2 bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? (
@@ -1236,7 +1231,7 @@ export default function UsersPage() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader className="border-b pb-4">
             <DialogTitle className="flex items-center gap-2 text-xl">
-              <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
                 <UserPlus className="h-4 w-4" />
               </div>
               Thêm người dùng mới
@@ -1245,8 +1240,8 @@ export default function UsersPage() {
               Điền thông tin để tạo người dùng mới trong hệ thống
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleAddUser} className="space-y-5 py-6 px-2">
-            <div className="space-y-4 bg-muted/40 rounded-lg p-5">
+          <form onSubmit={handleAddUser} className="space-y-5 px-2 py-6">
+            <div className="space-y-4 rounded-lg bg-muted/40 p-5">
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="email" className="text-right text-sm">
                   Email <span className="text-destructive">*</span>
@@ -1263,7 +1258,7 @@ export default function UsersPage() {
                     }
                     required
                   />
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <p className="mt-1 text-xs text-muted-foreground">
                     Email dùng để đăng nhập
                   </p>
                 </div>
@@ -1285,7 +1280,7 @@ export default function UsersPage() {
                     }
                     required
                   />
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <p className="mt-1 text-xs text-muted-foreground">
                     Tối thiểu 8 ký tự
                   </p>
                 </div>
@@ -1321,7 +1316,7 @@ export default function UsersPage() {
               </div>
 
               <div className="grid grid-cols-4 items-start gap-4 pt-2">
-                <Label htmlFor="name" className="text-right text-sm pt-2">
+                <Label htmlFor="name" className="pt-2 text-right text-sm">
                   Họ và tên
                 </Label>
                 <div className="col-span-3 space-y-3">
@@ -1347,7 +1342,7 @@ export default function UsersPage() {
               </div>
             </div>
 
-            <DialogFooter className="pt-4 border-t flex justify-between px-2">
+            <DialogFooter className="flex justify-between border-t px-2 pt-4">
               <Button
                 type="button"
                 variant="outline"

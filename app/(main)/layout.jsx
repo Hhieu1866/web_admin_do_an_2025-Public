@@ -5,19 +5,23 @@ import { SessionProvider } from "next-auth/react";
 
 const navLinks = [
   {
-    title: "Features",
+    title: "Tính năng",
     href: "/features",
   },
   {
-    title: "Pricing",
+    title: "Khóa học",
+    href: "/courses",
+  },
+  {
+    title: "Dịch vụ",
     href: "/pricing",
   },
   {
-    title: "Blog",
+    title: "Bài viết",
     href: "/blog",
   },
   {
-    title: "Documentation",
+    title: "Tài liệu",
     href: "/documentation",
   },
 ];
@@ -26,13 +30,13 @@ const MainLayout = ({ children }) => {
   return (
     <SessionProvider>
       <div className="flex min-h-screen flex-col">
-        <header className="z-40 bg-background/60 backdrop-blur-md fixed top-0 left-0 right-0 border-b">
+        <header className="fixed left-0 right-0 top-0 z-40 border-b bg-background/60 backdrop-blur-md">
           <div className="container flex h-20 items-center justify-between py-6">
             <MainNav items={navLinks} />
           </div>
         </header>
 
-        <main className="flex-1 pt-20 flex flex-col border-b border-gray-700">
+        <main className="flex flex-1 flex-col border-b border-gray-700 pt-20">
           {" "}
           {children}{" "}
         </main>

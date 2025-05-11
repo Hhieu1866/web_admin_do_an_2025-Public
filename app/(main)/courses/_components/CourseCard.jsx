@@ -43,9 +43,9 @@ const CourseCard = async ({ course }) => {
   console.log("Image source:", imageSrc, "Should show:", showImage);
 
   return (
-    <div className="group hover:shadow-sm transition overflow-hidden border rounded-lg p-3 h-full">
+    <div className="group h-full overflow-hidden rounded-lg border p-3 transition hover:shadow-sm">
       <Link key={course.id} href={`/courses/${course.id}`}>
-        <div className="relative w-full aspect-video rounded-md overflow-hidden">
+        <div className="relative aspect-video w-full overflow-hidden rounded-md">
           {showImage && (
             <Image
               src={imageSrc}
@@ -58,7 +58,7 @@ const CourseCard = async ({ course }) => {
           )}
         </div>
         <div className="flex flex-col pt-2">
-          <div className="text-lg md:text-base font-medium group-hover:text-sky-700 line-clamp-2">
+          <div className="line-clamp-2 text-lg font-medium group-hover:text-sky-700 md:text-base">
             {course?.title}
           </div>
           <p className="text-xs text-muted-foreground">
@@ -81,19 +81,16 @@ const CourseCard = async ({ course }) => {
         </div>
       </Link>
 
-      <div className="flex items-center justify-between mt-4">
-        <p className="text-md md:text-sm font-medium text-slate-700">
+      <div className="mt-4 flex items-center justify-between">
+        <p className="text-md font-medium text-slate-700 md:text-sm">
           {formatPrice(course?.price)}
         </p>
 
         {isEnrolled ? (
-          <Link href={`/courses/${course?.id}/lesson`}>
-            <Button
-              variant="ghost"
-              className="text-xs text-emerald-700 h-7 gap-1"
-            >
-              Vào học ngay
-              <ArrowRight className="w-3" />
+          // <Link href={`/courses/${course?.id}/lesson`}>
+          <Link href={`/courses/${course.id}`}>
+            <Button size="sm" className="flex items-center justify-between">
+              <p>Xem chi tiết</p>
             </Button>
           </Link>
         ) : (

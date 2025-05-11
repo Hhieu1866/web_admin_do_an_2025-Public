@@ -4,10 +4,12 @@ const reportSchema = new Schema({
   totalCompletedLessons: {
     required: true,
     type: Array,
+    default: [],
   },
   totalCompletedModeules: {
     required: true,
     type: Array,
+    default: [],
   },
   course: { type: Schema.ObjectId, ref: "Course" },
 
