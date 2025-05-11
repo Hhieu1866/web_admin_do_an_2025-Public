@@ -24,11 +24,16 @@ async function EnrolledCourses() {
   const enrollments = await getEnrollmentsForUser(loggedInUser?.id);
   console.log("Enrollments found:", enrollments?.length);
 
+  // Lọc ra các enrollment có course và course._id hợp lệ
+  const validEnrollments = enrollments?.filter(
+    (enrollment) => enrollment?.course && enrollment.course._id,
+  );
+
   return (
-    <div className="grid sm:grid-cols-2 gap-6">
-      {enrollments && enrollments.length > 0 ? (
+    <div className="grid gap-6 sm:grid-cols-2">
+      {validEnrollments && validEnrollments.length > 0 ? (
         <>
-          {enrollments.map((enrollment) => (
+          {validEnrollments.map((enrollment) => (
             <Link
               key={enrollment?.id}
               href={`/courses/${enrollment.course._id.toString()}/lesson`}
@@ -42,7 +47,7 @@ async function EnrolledCourses() {
         </>
       ) : (
         <div>
-          <p className="font-bold text-red-700 mb-4">
+          <p className="mb-4 font-bold text-red-700">
             Không tìm thấy khóa học nào đã đăng ký!
           </p>
           <p>
