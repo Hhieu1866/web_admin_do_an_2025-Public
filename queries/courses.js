@@ -13,6 +13,7 @@ import { Lesson } from "@/model/lesson.model";
 import { Quizset } from "@/model/quizset-model";
 import { Quiz } from "@/model/quizzes-model";
 import mongoose from "mongoose";
+import { Enrollment } from "@/model/enrollment-model";
 
 export async function getCourseList() {
   const courses = await Course.find({ active: true })
@@ -81,7 +82,17 @@ export async function getCourseDetails(id) {
       },
     })
     .lean();
-  return replaceMongoIdInObject(course);
+
+  // Lấy số lượng học viên đã đăng ký
+  const enrollmentCount = await Enrollment.countDocuments({ course: id });
+
+  // Thêm thông tin số lượng học viên vào đối tượng course
+  const courseWithEnrollmentCount = {
+    ...course,
+    enrollmentCount: enrollmentCount,
+  };
+
+  return replaceMongoIdInObject(courseWithEnrollmentCount);
 }
 
 function groupBy(array, keyFn) {

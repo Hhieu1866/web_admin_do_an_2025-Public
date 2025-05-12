@@ -4,8 +4,13 @@ import {
 } from "@/lib/convertData";
 import { Course } from "@/model/course-model";
 import { Enrollment } from "@/model/enrollment-model";
+import { Watch } from "@/model/watch-model";
 import { dbConnect } from "@/service/mongo";
 import mongoose from "mongoose";
+import { getCache, setCache, createCacheKey } from "@/lib/cache";
+
+// Thời gian cache cho enrollments (10 phút)
+const ENROLLMENTS_CACHE_TTL = 10 * 60 * 1000;
 
 export async function getEnrollmentsForCourse(courseId) {
   await dbConnect();
@@ -18,12 +23,7 @@ export async function enrollForCourse(courseId, userId) {
     // Đảm bảo đã kết nối đến MongoDB trước khi thực hiện thao tác
     await dbConnect();
 
-    console.log(
-      "Đang đăng ký khóa học với ID:",
-      courseId,
-      "cho user:",
-      userId,
-    );
+    console.log("Đang đăng ký khóa học với ID:", courseId, "cho user:", userId);
 
     const newEnrollment = {
       course: courseId,
@@ -36,6 +36,10 @@ export async function enrollForCourse(courseId, userId) {
     // Sử dụng phương thức tạo mới đối tượng Mongoose
     const enrollment = new Enrollment(newEnrollment);
     const savedEnrollment = await enrollment.save();
+
+    // Xóa cache khi có thay đổi
+    const cacheKey = createCacheKey("getEnrollmentsForUser", userId);
+    setCache(cacheKey, null, 0); // Xóa cache
 
     console.log("Đăng ký thành công:", savedEnrollment);
     return savedEnrollment;
@@ -50,6 +54,14 @@ export async function getEnrollmentsForUser(userId) {
     if (!userId) {
       console.error("getUserId is undefined or null");
       return [];
+    }
+
+    // Kiểm tra cache trước
+    const cacheKey = createCacheKey("getEnrollmentsForUser", userId);
+    const cachedData = getCache(cacheKey);
+    if (cachedData) {
+      console.log("Sử dụng dữ liệu cache cho danh sách khóa học đã đăng ký");
+      return cachedData;
     }
 
     await dbConnect();
@@ -74,10 +86,27 @@ export async function getEnrollmentsForUser(userId) {
 
     console.log("Tìm thấy", enrollments.length, "khóa học đã đăng ký");
 
-    return replaceMongoIdInArray(enrollments);
+    // Lọc bỏ các enrollment có course null hoặc không có _id
+    const validEnrollments = enrollments.filter(
+      (enrollment) => enrollment.course && enrollment.course._id,
+    );
+
+    if (validEnrollments.length !== enrollments.length) {
+      console.log(
+        `Đã lọc bỏ ${enrollments.length - validEnrollments.length} enrollment không hợp lệ`,
+      );
+    }
+
+    const result = replaceMongoIdInArray(validEnrollments);
+
+    // Lưu vào cache
+    setCache(cacheKey, result, ENROLLMENTS_CACHE_TTL);
+
+    return result;
   } catch (err) {
     console.error("Lỗi khi lấy danh sách khóa học đã đăng ký:", err);
-    throw new Error(err);
+    // Trả về mảng rỗng thay vì ném lỗi để tránh làm hỏng giao diện người dùng
+    return [];
   }
 }
 
@@ -89,6 +118,17 @@ export async function hasEnrollmentForCourse(courseId, studentId) {
         studentId,
       });
       return false;
+    }
+
+    // Kiểm tra cache
+    const cacheKey = createCacheKey(
+      "hasEnrollmentForCourse",
+      courseId,
+      studentId,
+    );
+    const cachedData = getCache(cacheKey);
+    if (cachedData !== null) {
+      return cachedData;
     }
 
     await dbConnect();
@@ -113,9 +153,59 @@ export async function hasEnrollmentForCourse(courseId, studentId) {
       })
       .lean();
 
-    return !!enrollment;
+    const result = !!enrollment;
+
+    // Lưu kết quả vào cache (thời gian ngắn hơn - 5 phút)
+    setCache(cacheKey, result, 5 * 60 * 1000);
+
+    return result;
   } catch (error) {
     console.error("Lỗi khi kiểm tra đăng ký khóa học:", error);
-    throw new Error(error);
+    return false; // Trả về false thay vì ném lỗi
+  }
+}
+
+export async function hasStartedLearning(courseId, studentId) {
+  try {
+    if (!courseId || !studentId) {
+      console.error("courseId hoặc studentId không hợp lệ:", {
+        courseId,
+        studentId,
+      });
+      return false;
+    }
+
+    // Kiểm tra cache
+    const cacheKey = createCacheKey("hasStartedLearning", courseId, studentId);
+    const cachedData = getCache(cacheKey);
+    if (cachedData !== null) {
+      return cachedData;
+    }
+
+    await dbConnect();
+
+    // Đảm bảo studentId là ObjectId hợp lệ
+    let studentObjectId;
+    try {
+      studentObjectId = new mongoose.Types.ObjectId(studentId);
+    } catch (error) {
+      console.error("Invalid studentId format:", studentId, error);
+      return false;
+    }
+
+    // Kiểm tra xem có bản ghi nào trong bảng Watch cho học viên này và khóa học này hay không
+    const watchRecord = await Watch.findOne({
+      user: studentObjectId,
+    }).lean();
+
+    const result = !!watchRecord;
+
+    // Lưu kết quả vào cache (thời gian ngắn hơn - 5 phút)
+    setCache(cacheKey, result, 5 * 60 * 1000);
+
+    return result;
+  } catch (error) {
+    console.error("Lỗi khi kiểm tra tiến trình học:", error);
+    return false;
   }
 }

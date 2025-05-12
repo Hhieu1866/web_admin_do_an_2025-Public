@@ -6,7 +6,10 @@ import Image from "next/image";
 import EnrollCourse from "@/components/enroll-course";
 import { auth } from "@/auth";
 import { getUserByEmail } from "@/queries/users";
-import { hasEnrollmentForCourse } from "@/queries/enrollments";
+import {
+  hasEnrollmentForCourse,
+  hasStartedLearning,
+} from "@/queries/enrollments";
 import { getImageUrl, shouldDisplayImage } from "@/lib/imageUtils";
 
 const CourseDetailsIntro = async ({ course }) => {
@@ -16,6 +19,11 @@ const CourseDetailsIntro = async ({ course }) => {
     course?.id,
     loogedInUser?.id,
   );
+
+  // Kiểm tra xem người dùng đã bắt đầu học chưa
+  const hasStarted = hasEnrollment
+    ? await hasStartedLearning(course?.id, loogedInUser?.id)
+    : false;
 
   // Debug course data
   console.log("Course detail data:", course?.id, {
@@ -33,28 +41,28 @@ const CourseDetailsIntro = async ({ course }) => {
   console.log("Detail image source:", imageSrc, "Should show:", showImage);
 
   return (
-    <div className="overflow-x-hidden grainy">
+    <div className="grainy overflow-x-hidden">
       <section className="pt-12 sm:pt-16">
         <div className="container">
-          <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
-            <div className="max-w-2xl mx-auto text-center">
-              <h1 className="px-6 text-lg text-gray-600 font-inter">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mx-auto max-w-2xl text-center">
+              <h1 className="px-6 font-inter text-lg text-gray-600">
                 {course?.subtitle}
               </h1>
-              <p className="mt-5 text-4xl font-bold leading-tight text-gray-900 sm:leading-tight sm:text-5xl lg:text-6xl lg:leading-tight font-pj">
+              <p className="font-pj mt-5 text-4xl font-bold leading-tight text-gray-900 sm:text-5xl sm:leading-tight lg:text-6xl lg:leading-tight">
                 <span className="relative inline-flex sm:inline">
-                  <span className="bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] blur-lg filter opacity-30 w-full h-full absolute inset-0"></span>
+                  <span className="absolute inset-0 h-full w-full bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] opacity-30 blur-lg filter"></span>
                   <span className="relative">{course?.title} </span>
                 </span>
               </p>
 
-              <div className="mt-6 flex items-center justify-center flex-wrap gap-3">
+              <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
                 {hasEnrollment ? (
                   <Link
                     href={`/courses/${course?.id}/lesson`}
                     className={cn(buttonVariants({ size: "lg" }))}
                   >
-                    Vào học ngay
+                    {hasStarted ? "Tiếp tục học" : "Vào học ngay"}
                   </Link>
                 ) : (
                   <EnrollCourse courseId={course?.id} />
@@ -80,11 +88,11 @@ const CourseDetailsIntro = async ({ course }) => {
             </div>
           </div>
 
-          <div className="pb-12 mt-6">
+          <div className="mt-6 pb-12">
             <div className="relative">
               <div className="absolute inset-0 h-2/3"></div>
               <div className="relative mx-auto">
-                <div className="lg:max-w-3xl lg:mx-auto">
+                <div className="lg:mx-auto lg:max-w-3xl">
                   {showImage && (
                     <Image
                       className="w-full rounded-lg"

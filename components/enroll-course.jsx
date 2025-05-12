@@ -12,6 +12,7 @@ const EnrollCourse = ({ asLink, courseId }) => {
   const { data: session } = useSession();
   const [isLoading, setIsLoading] = useState(false);
   const [isEnrolled, setIsEnrolled] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false);
 
   // Kiểm tra xem người dùng đã đăng ký khóa học này chưa khi component được tải
   useEffect(() => {
@@ -34,6 +35,19 @@ const EnrollCourse = ({ asLink, courseId }) => {
         const data = await response.json();
         if (response.ok && data.isEnrolled) {
           setIsEnrolled(true);
+
+          // Kiểm tra xem học viên đã bắt đầu học chưa
+          try {
+            const watchResponse = await fetch(
+              `/api/lesson-watch?courseId=${courseId}&checkOnly=true`,
+            );
+            if (watchResponse.ok) {
+              const watchData = await watchResponse.json();
+              setHasStarted(watchData.hasStarted);
+            }
+          } catch (error) {
+            console.error("Lỗi khi kiểm tra tiến trình học:", error);
+          }
         }
       } catch (error) {
         console.error("Lỗi khi kiểm tra đăng ký:", error);
@@ -106,7 +120,7 @@ const EnrollCourse = ({ asLink, courseId }) => {
         }
         onClick={() => router.push(`/courses/${courseId}/lesson`)}
       >
-        Vào học ngay
+        {hasStarted ? "Tiếp tục học" : "Vào học ngay"}
         <ArrowRight className={asLink ? "w-3" : "ml-2 w-4"} />
       </Button>
     );
