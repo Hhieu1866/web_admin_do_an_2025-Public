@@ -67,9 +67,11 @@ export const columns = [
         </Button>
       );
     },
-    cell: ({row}) => {
+    cell: ({ row }) => {
       const progress = row.getValue("progress");
-      return `${progress}%`
+      const roundedProgress =
+        typeof progress === "number" ? progress.toFixed(2) : "0.00";
+      return <div className="font-medium">{roundedProgress}%</div>;
     },
   },
   {
@@ -84,10 +86,9 @@ export const columns = [
         </Button>
       );
     },
-    cell: ({row}) => {
+    cell: ({ row }) => {
       const enrollmentDate = row.getValue("enrollment_date");
       return formatMyDate(enrollmentDate);
     },
   },
-   
 ];
