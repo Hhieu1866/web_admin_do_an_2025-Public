@@ -71,7 +71,7 @@ export const DownloadCertificate = ({
         )}
         {isCertificateDownloading ? (
           <div className="flex items-center gap-2">
-            <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+            <div className="animate-faster-spin h-4 w-4 rounded-full border-2 border-current border-t-transparent" />
             <span>Đang tải...</span>
           </div>
         ) : (

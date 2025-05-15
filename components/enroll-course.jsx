@@ -138,7 +138,7 @@ const EnrollCourse = ({ asLink, courseId, className }) => {
         >
           {isLoading ? (
             <>
-              <Loader2 className="h-3 w-3 animate-spin" />
+              <Loader2 className="animate-faster-spin h-3 w-3" />
               <span>Đang xử lý...</span>
             </>
           ) : (
@@ -156,7 +156,7 @@ const EnrollCourse = ({ asLink, courseId, className }) => {
         >
           {isLoading ? (
             <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <Loader2 className="animate-faster-spin mr-2 h-4 w-4" />
               <span>Đang xử lý...</span>
             </>
           ) : (

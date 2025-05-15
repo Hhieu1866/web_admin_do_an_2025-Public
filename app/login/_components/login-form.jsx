@@ -1,5 +1,9 @@
 "use client";
 import Link from "next/link";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -12,10 +16,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ceredntialLogin } from "@/app/actions";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
 
 export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
@@ -50,6 +50,7 @@ export function LoginForm() {
           position: "top-center",
           id: "login-error",
         });
+        setIsLoading(false);
       } else {
         toast.success("Đăng nhập thành công!", {
           duration: 3000,
@@ -87,18 +88,17 @@ export function LoginForm() {
         duration: 4000,
         position: "top-center",
       });
-    } finally {
       setIsLoading(false);
     }
   }
 
   return (
-    <Card className="mx-auto max-w-sm w-full">
+    <Card className="mx-auto w-full max-w-sm">
       <CardHeader>
         <CardTitle className="text-2xl">
-          <p className="mt-5 text-3xl font-bold leading-tight text-gray-900 sm:leading-tight sm:text-5xl lg:text-3xl lg:leading-tight font-pj">
+          <p className="font-pj mt-5 text-3xl font-bold leading-tight text-gray-900 sm:text-5xl sm:leading-tight lg:text-3xl lg:leading-tight">
             <span className="relative inline-flex sm:inline">
-              <span className="bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] blur-lg filter opacity-30 w-full h-full absolute inset-0"></span>
+              <span className="absolute inset-0 h-full w-full bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] opacity-30 blur-lg filter"></span>
               <span className="relative">Đăng nhập</span>
             </span>
           </p>
@@ -141,7 +141,7 @@ export function LoginForm() {
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? (
                 <span className="flex items-center gap-2">
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Loader2 className="animate-faster-spin h-4 w-4" />
                   Đang xử lý...
                 </span>
               ) : (
@@ -153,7 +153,7 @@ export function LoginForm() {
             Chưa có tài khoản?{" "}
             <Link
               href="/register"
-              className="underline text-primary hover:text-primary/80"
+              className="text-primary underline hover:text-primary/80"
             >
               Đăng ký
             </Link>
