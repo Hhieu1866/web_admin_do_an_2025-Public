@@ -28,7 +28,7 @@ const FeatureCard = () => {
     <div className="flex gap-4">
       {features.map((feature, index) => (
         <div
-          className="flex w-11/12 flex-col items-start space-y-4 rounded-xl border p-5 shadow-lg transition hover:drop-shadow-xl"
+          className="flex w-11/12 flex-col items-start space-y-4 rounded-2xl border p-5 transition"
           key={index}
         >
           <div className="rounded-lg bg-secondary p-3">

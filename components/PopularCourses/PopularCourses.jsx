@@ -17,14 +17,14 @@ const PopularCourses = async () => {
           <div className="flex flex-col items-center justify-center space-y-4 text-center">
             <div className="space-y-2">
               <Badge variant="secondary" className="text-base">
-                Khóa học nổi bật
+                Lộ trình nổi bật
               </Badge>
-              <h2 className="text-colors-navy text-3xl font-bold tracking-tighter sm:text-5xl">
-                Khóa học phổ biến
+              <h2 className="text-3xl font-bold tracking-tighter text-colors-navy sm:text-5xl">
+                Dành cho bạn
               </h2>
               <p className="max-w-[900px] text-gray-500 dark:text-gray-400 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                Khám phá các khóa học được yêu thích nhất trên nền tảng của
-                chúng tôi
+                Khám phá các lộ trình học được đông đảo người dùng lựa chọn trên
+                nền tảng của chúng tôi.
               </p>
             </div>
           </div>

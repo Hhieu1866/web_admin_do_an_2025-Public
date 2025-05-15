@@ -20,6 +20,8 @@ module.exports = {
       colors: {
         colors: {
           navy: "#0F172A",
+          primaryHover: "#00755a",
+          secondaryHover: "#c4d7d5",
         },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
