@@ -30,7 +30,7 @@ async function EnrolledCourses() {
   );
 
   return (
-    <div className="grid gap-6 sm:grid-cols-2">
+    <div className="grid gap-6 sm:grid-cols-3">
       {validEnrollments && validEnrollments.length > 0 ? (
         <>
           {validEnrollments.map((enrollment) => (

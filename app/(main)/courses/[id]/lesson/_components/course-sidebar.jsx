@@ -21,23 +21,38 @@ import { Watch } from "@/model/watch-model";
 import { ObjectId } from "mongoose";
 import { getReport } from "@/queries/reports";
 import Quiz from "./quiz";
+import { createCacheKey, deleteCache } from "@/lib/cache";
+import { dbConnect } from "@/service/mongo";
 
 export const CourseSidebar = async ({ courseId }) => {
-  const course = await getCourseDetails(courseId);
+  await dbConnect();
+
   const loggedinUser = await getLoggedInUser();
 
+  // Xóa cache báo cáo khi load sidebar để đảm bảo dữ liệu mới nhất
+  const reportCacheKey = createCacheKey("report", courseId, loggedinUser.id);
+  deleteCache(reportCacheKey);
+
+  const course = await getCourseDetails(courseId);
+
+  // Lấy báo cáo tiến trình của người dùng
   const report = await getReport({
     course: courseId,
     student: loggedinUser.id,
   });
 
+  // Đếm số module đã hoàn thành
   const totalCompletedModules = report?.totalCompletedModeules
     ? report?.totalCompletedModeules.length
     : 0;
 
+  // Đếm tổng số module trong khóa học
   const totalModules = course?.modules ? course.modules.length : 0;
 
+  // Đếm tổng số bài học trong tất cả các module
   let totalLessons = 0;
+
+  // Đếm số bài học đã hoàn thành
   let totalCompletedLessons = report?.totalCompletedLessons?.length || 0;
 
   if (course?.modules && Array.isArray(course.modules)) {
@@ -48,17 +63,21 @@ export const CourseSidebar = async ({ courseId }) => {
     });
   }
 
+  // Tính tiến trình khóa học dựa trên số bài học đã hoàn thành
   let totalProgress = 0;
 
-  if (totalModules > 0 && totalCompletedModules > 0) {
-    totalProgress = (totalCompletedModules / totalModules) * 100;
-  } else if (totalLessons > 0 && totalCompletedLessons > 0) {
+  if (totalLessons > 0 && totalCompletedLessons > 0) {
     totalProgress = (totalCompletedLessons / totalLessons) * 100;
   }
+  // Nếu không có bài học nào hoàn thành, tính tiến trình dựa trên module
+  else if (totalModules > 0 && totalCompletedModules > 0) {
+    totalProgress = (totalCompletedModules / totalModules) * 100;
+  }
 
-  totalProgress = Math.max(0, Math.min(100, totalProgress));
+  // Giới hạn tiến trình từ 0-100%
+  totalProgress = Math.max(0, Math.min(100, Math.floor(totalProgress)));
 
-  // Sanitize fucntion for handle ObjectID and Buffer
+  // Sanitize function cho ObjectID và Buffer
   function sanitizeData(data) {
     if (!data) return null;
 
@@ -92,6 +111,7 @@ export const CourseSidebar = async ({ courseId }) => {
                 module: moduleId,
                 user: loggedinUser.id,
               }).lean();
+
               if (watch?.state === "completed") {
                 lesson.state = "completed";
               } else if (watch?.state === "started") {
@@ -107,8 +127,6 @@ export const CourseSidebar = async ({ courseId }) => {
     );
   }
 
-  //console.log(updatedModules);
-
   const updatedallModules =
     updatedModules.length > 0 ? sanitizeData(updatedModules) : [];
 
@@ -116,8 +134,26 @@ export const CourseSidebar = async ({ courseId }) => {
   const isQuizComplete = report?.quizAssessment ? true : false;
   const quizSet = quizSetall ? sanitizeData(quizSetall) : null;
 
-  //console.log({quizSet});
-  //console.log({isQuizComplete});
+  // Lấy thông tin đánh giá quiz nếu có
+  let assessmentData = null;
+  if (report?.quizAssessment) {
+    // Chuyển đổi dữ liệu từ report.quizAssessment
+    assessmentData = {
+      score: report.quizAssessment.score || 0,
+      totalQuestions: report.quizAssessment.totalQuestions || 0,
+      percentage: report.quizAssessment.percentage || 0,
+      isPassed: report.quizAssessment.isPassed || false,
+      nextAttemptAllowed: report.quizAssessment.nextAttemptAllowed || null,
+    };
+  }
+
+  // Debug thông tin chứng chỉ
+  console.log("Debug sidebar data:", {
+    totalProgress,
+    reportData: report?.quizAssessment || "Không có dữ liệu quiz",
+    assessmentData,
+    isPassed: assessmentData?.isPassed,
+  });
 
   return (
     <>
@@ -128,7 +164,7 @@ export const CourseSidebar = async ({ courseId }) => {
           {
             <div className="mt-10">
               <CourseProgress variant="success" value={totalProgress} />
-              {totalCompletedLessons > 0 && (
+              {totalLessons > 0 && (
                 <p className="mt-1 text-xs text-muted-foreground">
                   {totalCompletedLessons}/{totalLessons} bài học đã hoàn thành
                 </p>
@@ -145,6 +181,7 @@ export const CourseSidebar = async ({ courseId }) => {
               courseId={courseId}
               quizSet={quizSet}
               isTaken={isQuizComplete}
+              assessmentData={assessmentData}
             />
           )}
         </div>
@@ -154,6 +191,7 @@ export const CourseSidebar = async ({ courseId }) => {
           <DownloadCertificate
             courseId={courseId}
             totalProgress={totalProgress}
+            quizPassed={assessmentData?.isPassed}
           />
         </div>
       </div>

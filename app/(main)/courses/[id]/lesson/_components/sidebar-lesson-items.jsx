@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { CheckCircle } from "lucide-react";
@@ -30,27 +32,40 @@ export const SidebarLessonItem = ({ courseId, lesson, module }) => {
     return "";
   };
 
+  // Nếu bài học bị khóa, trả về div thay vì Link
+  if (isLocked(lesson)) {
+    return (
+      <div
+        className={cn(
+          "group relative flex cursor-not-allowed items-center gap-x-2 text-sm font-[500] text-slate-400",
+        )}
+        title="Bài học bị khóa"
+      >
+        <div className="flex items-center gap-x-2">
+          <Lock size={16} className={cn("flex-shrink-0 text-slate-400")} />
+          <span className="truncate">{lesson.title}</span>
+        </div>
+        <span className="pointer-events-none absolute -top-6 left-0 rounded bg-slate-800 px-2 py-1 text-xs text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+          Bài học bị khóa
+        </span>
+      </div>
+    );
+  }
+
+  // Nếu bài học có thể truy cập, trả về Link
   return (
     <Link
-      href={
-        isLocked(lesson)
-          ? "#"
-          : `/courses/${courseId}/lesson?name=${lesson.slug}&module=${module}`
-      }
+      href={`/courses/${courseId}/lesson?name=${lesson.slug}&module=${module}`}
       className={cn(
         "group relative flex items-center gap-x-2 text-sm font-[500] text-slate-500 transition-all hover:text-slate-600",
-        isLocked(lesson)
-          ? "cursor-default text-slate-400 hover:text-slate-400"
-          : isCompleted(lesson)
-            ? "text-emerald-700 hover:text-emerald-700"
-            : isStarted(lesson) && "text-blue-600 hover:text-blue-700",
+        isCompleted(lesson)
+          ? "text-emerald-700 hover:text-emerald-700"
+          : isStarted(lesson) && "text-blue-600 hover:text-blue-700",
       )}
       title={getStatusText(lesson)}
     >
       <div className="flex items-center gap-x-2">
-        {isLocked(lesson) ? (
-          <Lock size={16} className={cn("flex-shrink-0 text-slate-400")} />
-        ) : isCompleted(lesson) ? (
+        {isCompleted(lesson) ? (
           <CheckCircle
             size={16}
             className={cn("flex-shrink-0 text-emerald-700")}

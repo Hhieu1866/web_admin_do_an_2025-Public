@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 
-const EnrollCourse = ({ asLink, courseId }) => {
+const EnrollCourse = ({ asLink, courseId, className }) => {
   const router = useRouter();
   const { data: session } = useSession();
   const [isLoading, setIsLoading] = useState(false);
@@ -116,7 +116,7 @@ const EnrollCourse = ({ asLink, courseId }) => {
         className={
           asLink
             ? "h-7 gap-1 text-xs text-emerald-700"
-            : cn(buttonVariants({ size: "lg" }))
+            : cn(buttonVariants({ size: "lg" }), className)
         }
         onClick={() => router.push(`/courses/${courseId}/lesson`)}
       >
@@ -151,7 +151,7 @@ const EnrollCourse = ({ asLink, courseId }) => {
       ) : (
         <Button
           onClick={handleEnroll}
-          className={cn(buttonVariants({ size: "lg" }))}
+          className={cn(buttonVariants({ size: "lg" }), className)}
           disabled={isLoading}
         >
           {isLoading ? (

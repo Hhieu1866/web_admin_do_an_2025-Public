@@ -1,26 +1,52 @@
 import React from "react";
-import { CheckCheck } from "lucide-react";
+import { Check, Users, Calendar } from "lucide-react";
 
 const CourseOverview = ({ course }) => {
   return (
-    <>
-      <h3 className=" text-2xl">Course Description</h3>
-      <p className="mt-4">{course?.description}</p>
-      <div className="bg-gray-50 space-y-6 p-8 rounded-md mt-8">
-        <h4 className="text-2xl">What You will Learn?</h4>
-        <ul className="grid sm:grid-cols-2 grid-cols-1 gap-6">
-          {course?.learning &&
-            course?.learning.map((learn, index) => (
-              <li key={index} className="flex space-x-3">
-                <div className="flex-none relative top-1">
-                  <CheckCheck />
-                </div>
-                <div className="flex-1">{learn}</div>
-              </li>
-            ))}
-        </ul>
-      </div>
-    </>
+    <div className="mt-8">
+      <h2 className="mb-6 text-2xl font-bold">Khóa học này phù hợp với ai?</h2>
+      <ul className="space-y-4">
+        <li className="flex items-start gap-3">
+          <Check className="mt-0.5 h-5 w-5 text-primary" />
+          <div>
+            <p className="font-semibold">Người mới bắt đầu</p>
+            <p className="text-gray-600">
+              Khóa học thiết kế đơn giản, dễ hiểu cho người mới làm quen với
+              QA/QC
+            </p>
+          </div>
+        </li>
+        <li className="flex items-start gap-3">
+          <Check className="mt-0.5 h-5 w-5 text-primary" />
+          <div>
+            <p className="font-semibold">Chuyên viên phát triển phần mềm</p>
+            <p className="text-gray-600">
+              Nâng cao hiểu biết về quy trình đảm bảo chất lượng trong phát
+              triển
+            </p>
+          </div>
+        </li>
+        <li className="flex items-start gap-3">
+          <Check className="mt-0.5 h-5 w-5 text-primary" />
+          <div>
+            <p className="font-semibold">Người có kinh nghiệm QA/QC</p>
+            <p className="text-gray-600">
+              Cập nhật các kỹ thuật và công cụ kiểm thử hiện đại
+            </p>
+          </div>
+        </li>
+        <li className="flex items-start gap-3">
+          <Check className="mt-0.5 h-5 w-5 text-primary" />
+          <div>
+            <p className="font-semibold">Quản lý dự án</p>
+            <p className="text-gray-600">
+              Hiểu rõ hơn về quy trình đảm bảo chất lượng để quản lý dự án hiệu
+              quả
+            </p>
+          </div>
+        </li>
+      </ul>
+    </div>
   );
 };
 

@@ -13,7 +13,7 @@ import { redirect, useRouter } from "next/navigation";
 import { getUserByEmail } from "@/queries/users";
 import { toast } from "sonner";
 import { Loader2, Camera, Upload, Trash2 } from "lucide-react";
-import ConfirmDialog from "@/app/components/confirm-dialog";
+import ConfirmDialog from "@/components/confirm-dialog";
 
 const AccountSidebar = ({ loggedInUser }) => {
   const [isHovering, setIsHovering] = useState(false);
@@ -122,9 +122,9 @@ const AccountSidebar = ({ loggedInUser }) => {
   };
 
   return (
-    <div className="lg:col-span-3 md:col-span-4">
-      <div className="p-6 rounded-md shadow dark:shadow-gray-800 bg-white dark:bg-slate-900 sticky top-20">
-        <div className="profile-pic text-center mb-5">
+    <div className="md:col-span-4 lg:col-span-3">
+      <div className="sticky top-20 rounded-md bg-white p-6 shadow dark:bg-slate-900 dark:shadow-gray-800">
+        <div className="profile-pic mb-5 text-center">
           <div>
             <div
               className="relative mx-auto cursor-pointer"
@@ -133,7 +133,7 @@ const AccountSidebar = ({ loggedInUser }) => {
               onMouseLeave={() => setIsHovering(false)}
               onClick={handleChangeAvatar}
             >
-              <div className="absolute inset-0 rounded-full overflow-hidden">
+              <div className="absolute inset-0 overflow-hidden rounded-full">
                 {loggedInUser?.profilePicture && !imageError ? (
                   <Image
                     src={loggedInUser.profilePicture}
@@ -151,7 +151,7 @@ const AccountSidebar = ({ loggedInUser }) => {
                     unoptimized={false}
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-primary text-white text-4xl font-medium">
+                  <div className="flex h-full w-full items-center justify-center bg-primary text-4xl font-medium text-white">
                     {loggedInUser?.firstName?.[0] || ""}
                     {loggedInUser?.lastName?.[0] || ""}
                   </div>
@@ -160,16 +160,16 @@ const AccountSidebar = ({ loggedInUser }) => {
 
               {/* Overlay khi hover */}
               {isHovering && (
-                <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center">
+                <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40">
                   {isUploading ? (
-                    <Loader2 className="h-6 w-6 text-white animate-spin" />
+                    <Loader2 className="h-6 w-6 animate-spin text-white" />
                   ) : (
                     <Camera className="h-6 w-6 text-white" />
                   )}
                 </div>
               )}
 
-              <div className="absolute inset-0 rounded-full shadow dark:shadow-gray-800 ring-4 ring-slate-50 dark:ring-slate-800 pointer-events-none"></div>
+              <div className="pointer-events-none absolute inset-0 rounded-full shadow ring-4 ring-slate-50 dark:shadow-gray-800 dark:ring-slate-800"></div>
 
               {/* Input ẩn để upload file */}
               <Input
@@ -223,7 +223,7 @@ const AccountSidebar = ({ loggedInUser }) => {
                 {`${loggedInUser?.firstName} ${loggedInUser?.lastName}`}
               </h5>
               <p className="text-slate-400">{loggedInUser?.email}</p>
-              <p className="text-slate-700 text-sm font-bold">
+              <p className="text-sm font-bold text-slate-700">
                 Role: {loggedInUser?.role}
               </p>
             </div>

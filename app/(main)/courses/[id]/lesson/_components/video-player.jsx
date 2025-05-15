@@ -4,7 +4,7 @@ export const VideoPlayer = ({}) => {
   return (
     <div className="relative aspect-video">
       <iframe
-        className="w-full h-full"
+        className="h-full w-full"
         src="https://www.youtube.com/embed/LJi2tiWiYmI?si=CeLBaBM2iQorWJjU"
         title="YouTube video player"
         frameBorder="0"
@@ -15,4 +15,3 @@ export const VideoPlayer = ({}) => {
     </div>
   );
 };
- 

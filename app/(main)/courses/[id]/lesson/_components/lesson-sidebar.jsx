@@ -24,6 +24,7 @@ import { getReport } from "@/queries/reports";
 import { GiveReview } from "./give-review";
 import { DownloadCertificate } from "./download-certificate";
 import Quiz from "./quiz";
+import { LessonSidebarLink } from "./lesson-sidebar-link";
 
 export const LessonSidebar = async ({ courseId }) => {
   const course = await getCourseDetails(courseId);
@@ -158,40 +159,16 @@ export const LessonSidebar = async ({ courseId }) => {
                         const status = lesson.state;
                         const isCompleted = status === "completed";
                         const isStarted = status === "started";
+                        const lessonUrl = `/courses/${courseId}/lesson?name=${lesson.slug}&module=${module.slug}`;
 
                         return (
-                          <Link
+                          <LessonSidebarLink
                             key={lesson._id}
-                            href={`/courses/${courseId}/lesson?name=${lesson.slug}&module=${module.slug}`}
-                            className={cn(
-                              "group flex items-center gap-3 border-l-2 px-8 py-3 transition-all hover:bg-slate-50/80",
-                              isCompleted
-                                ? "border-l-emerald-500"
-                                : "border-l-transparent",
-                            )}
-                          >
-                            <div className="flex h-6 w-6 items-center justify-center rounded-full">
-                              {isCompleted ? (
-                                <CheckCircle className="h-5 w-5 text-emerald-500" />
-                              ) : isStarted ? (
-                                <PlayCircle className="h-5 w-5 text-blue-600" />
-                              ) : (
-                                <PlayCircle className="h-5 w-5 text-gray-400" />
-                              )}
-                            </div>
-                            <span
-                              className={cn(
-                                "line-clamp-1 text-sm",
-                                isCompleted
-                                  ? "font-medium text-emerald-700"
-                                  : isStarted
-                                    ? "font-medium text-blue-700"
-                                    : "text-gray-600",
-                              )}
-                            >
-                              {lesson.title}
-                            </span>
-                          </Link>
+                            lesson={lesson}
+                            href={lessonUrl}
+                            isCompleted={isCompleted}
+                            isStarted={isStarted}
+                          />
                         );
                       })}
                 </div>
@@ -214,7 +191,7 @@ export const LessonSidebar = async ({ courseId }) => {
                   </p>
                 </div>
               </div>
-              <div className="p-4">
+              <div className="">
                 <Quiz
                   courseId={courseId}
                   quizSet={quizSet}

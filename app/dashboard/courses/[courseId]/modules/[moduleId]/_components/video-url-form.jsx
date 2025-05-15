@@ -123,10 +123,10 @@ export const VideoUrlForm = ({ initialData, courseId, lessonId }) => {
   };
 
   return (
-    <div className="mt-6 border bg-slate-100 rounded-md p-4">
-      <div className="font-medium flex items-center justify-between">
+    <div className="mt-6 rounded-md border bg-slate-100 p-4">
+      <div className="flex items-center justify-between font-medium">
         <div className="flex items-center">
-          <Youtube className="h-5 w-5 mr-2 text-red-600" />
+          <Youtube className="mr-2 h-5 w-5 text-red-600" />
           <span>Video URL</span>
         </div>
         <Button variant="ghost" onClick={toggleEdit}>
@@ -134,7 +134,7 @@ export const VideoUrlForm = ({ initialData, courseId, lessonId }) => {
             <>Hủy</>
           ) : (
             <>
-              <Pencil className="h-4 w-4 mr-2" />
+              <Pencil className="mr-2 h-4 w-4" />
               Chỉnh sửa
             </>
           )}
@@ -149,21 +149,21 @@ export const VideoUrlForm = ({ initialData, courseId, lessonId }) => {
                 <div className="aspect-video">
                   <VideoPlayer url={state.url} />
                 </div>
-                <div className="p-3 bg-white flex items-center justify-between text-sm text-muted-foreground">
+                <div className="flex items-center justify-between bg-white p-3 text-sm text-muted-foreground">
                   <div className="flex items-center">
-                    <Play className="h-4 w-4 mr-1 text-green-600" />
-                    <span className="truncate max-w-[300px]">{state.url}</span>
+                    <Play className="mr-1 h-4 w-4 text-green-600" />
+                    <span className="max-w-[300px] truncate">{state.url}</span>
                   </div>
                   <div className="flex items-center">
-                    <Clock className="h-4 w-4 mr-1" />
+                    <Clock className="mr-1 h-4 w-4" />
                     {state.duration}
                   </div>
                 </div>
               </CardContent>
             </Card>
           ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground border rounded-md mt-4 bg-white">
-              <Youtube className="h-12 w-12 mb-2 text-muted-foreground/50" />
+            <div className="mt-4 flex flex-col items-center justify-center rounded-md border bg-white py-12 text-muted-foreground">
+              <Youtube className="mb-2 h-12 w-12 text-muted-foreground/50" />
               <p className="text-sm">Chưa có video cho bài học này</p>
               <Button
                 variant="outline"
@@ -171,7 +171,7 @@ export const VideoUrlForm = ({ initialData, courseId, lessonId }) => {
                 className="mt-4"
                 onClick={toggleEdit}
               >
-                <Play className="h-4 w-4 mr-2" />
+                <Play className="mr-2 h-4 w-4" />
                 Thêm video
               </Button>
             </div>
@@ -183,7 +183,7 @@ export const VideoUrlForm = ({ initialData, courseId, lessonId }) => {
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="space-y-4 mt-4"
+            className="mt-4 space-y-4"
           >
             <FormField
               control={form.control}
@@ -191,7 +191,7 @@ export const VideoUrlForm = ({ initialData, courseId, lessonId }) => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="flex items-center">
-                    <Youtube className="h-4 w-4 mr-1 text-red-600" />
+                    <Youtube className="mr-1 h-4 w-4 text-red-600" />
                     URL Video (YouTube)
                   </FormLabel>
                   <FormControl>
@@ -204,7 +204,7 @@ export const VideoUrlForm = ({ initialData, courseId, lessonId }) => {
                     />
                   </FormControl>
                   <FormMessage />
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <p className="mt-1 text-xs text-muted-foreground">
                     Hỗ trợ URL YouTube dạng đầy đủ hoặc rút gọn (youtu.be)
                   </p>
                 </FormItem>
@@ -217,7 +217,7 @@ export const VideoUrlForm = ({ initialData, courseId, lessonId }) => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="flex items-center">
-                    <Clock className="h-4 w-4 mr-1" />
+                    <Clock className="mr-1 h-4 w-4" />
                     Thời lượng Video
                   </FormLabel>
                   <FormControl>
@@ -229,7 +229,7 @@ export const VideoUrlForm = ({ initialData, courseId, lessonId }) => {
                     />
                   </FormControl>
                   <FormMessage />
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <p className="mt-1 text-xs text-muted-foreground">
                     Định dạng: giờ:phút:giây (ví dụ: 00:45:30)
                   </p>
                 </FormItem>

@@ -1,10 +1,10 @@
 "use client";
 
-export const VideoPlayer = ({url}) => {
+export const VideoPlayer = ({ url }) => {
   return (
     <div className="relative aspect-video">
       <iframe
-        className="w-full h-full"
+        className="h-full w-full"
         src={url}
         title="YouTube video player"
         frameBorder="0"
