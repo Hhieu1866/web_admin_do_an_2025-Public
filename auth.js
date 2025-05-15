@@ -1,6 +1,7 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { User, connectToMongoDB } from "./model/user-model";
+import { User } from "./model/user-model";
+import { dbConnect } from "./service/mongo";
 import bcrypt from "bcryptjs";
 import { authConfig } from "./auth.config";
 
@@ -23,8 +24,8 @@ const nextAuthConfig = {
         }
 
         try {
-          // Kết nối MongoDB trước khi truy vấn
-          await connectToMongoDB();
+          // Kết nối MongoDB trước khi truy vấn - sử dụng dbConnect thay vì connectToMongoDB
+          await dbConnect();
 
           console.log("Đang tìm user với email:", credentials.email);
           const user = await User.findOne({ email: credentials?.email });

@@ -1,22 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-
-// Hàm kết nối đến MongoDB
-async function connectToMongoDB() {
-  if (mongoose.connection.readyState >= 1) {
-    return mongoose.connection;
-  }
-
-  try {
-    console.log("Đang kết nối đến MongoDB...");
-    const conn = await mongoose.connect(process.env.MONGODB_CONNECTION_STRING);
-    console.log("Kết nối MongoDB thành công!");
-    return conn;
-  } catch (error) {
-    console.error("Lỗi kết nối MongoDB:", error.message);
-    console.error("Stack trace:", error.stack);
-    throw error; // Ném lỗi để xử lý ở mức cao hơn
-  }
-}
+import { dbConnect } from "@/service/mongo";
 
 const userSchema = new Schema({
   firstName: {
@@ -78,4 +61,4 @@ if (mongoose.models && mongoose.models.User) {
   User = mongoose.model("User", userSchema);
 }
 
-export { User, connectToMongoDB };
+export { User };
