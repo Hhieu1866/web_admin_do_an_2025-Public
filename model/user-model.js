@@ -1,19 +1,13 @@
 import mongoose, { Schema } from "mongoose";
+import { dbConnect } from "@/service/mongo";
 
-// Hàm kết nối đến MongoDB
+// Hàm kết nối đến MongoDB - sử dụng lại dbConnect từ service/mongo.js
 async function connectToMongoDB() {
-  if (mongoose.connection.readyState >= 1) {
-    return mongoose.connection;
-  }
-
   try {
-    console.log("Đang kết nối đến MongoDB...");
-    const conn = await mongoose.connect(process.env.MONGODB_CONNECTION_STRING);
-    console.log("Kết nối MongoDB thành công!");
-    return conn;
+    // Sử dụng phương thức dbConnect đã được cải thiện
+    return await dbConnect();
   } catch (error) {
-    console.error("Lỗi kết nối MongoDB:", error.message);
-    console.error("Stack trace:", error.stack);
+    console.error("Lỗi kết nối MongoDB từ user-model:", error.message);
     throw error; // Ném lỗi để xử lý ở mức cao hơn
   }
 }
