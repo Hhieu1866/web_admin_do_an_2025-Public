@@ -40,42 +40,7 @@ export function LoginForm() {
         return;
       }
 
-      // Thêm logic retry với tối đa 2 lần thử
-      let attempts = 0;
-      let loginSuccess = false;
-      let response;
-
-      while (attempts < 2 && !loginSuccess) {
-        try {
-          response = await ceredntialLogin(formData);
-          loginSuccess = true;
-        } catch (err) {
-          attempts++;
-          console.log(`Lỗi đăng nhập lần ${attempts}, đang thử lại...`);
-
-          // Nếu là lỗi timeout MongoDB, hiển thị thông báo nhưng vẫn thử lại
-          if (err.message && err.message.includes("buffering timed out")) {
-            if (attempts < 2) {
-              toast.error("Hệ thống đang tải chậm, đang thử lại...", {
-                duration: 2000,
-                position: "top-center",
-              });
-              // Đợi 1 giây trước khi thử lại
-              await new Promise((resolve) => setTimeout(resolve, 1000));
-            }
-          } else {
-            // Nếu là lỗi khác, ném ra để xử lý bên ngoài
-            throw err;
-          }
-        }
-      }
-
-      // Nếu không thành công sau 2 lần thử
-      if (!loginSuccess) {
-        throw new Error(
-          "Không thể kết nối đến hệ thống. Vui lòng thử lại sau.",
-        );
-      }
+      const response = await ceredntialLogin(formData);
 
       if (!!response?.error) {
         console.log(response.error);
@@ -118,21 +83,8 @@ export function LoginForm() {
         }
       }
     } catch (error) {
-      console.error("Lỗi đăng nhập:", error);
-      // Xử lý thông báo dựa vào loại lỗi
-      let errorMessage = "Đã xảy ra lỗi khi đăng nhập";
-
-      if (error.message && error.message.includes("buffering timed out")) {
-        errorMessage = "Hệ thống đang tải chậm. Vui lòng thử lại sau.";
-      } else if (error.message && error.message.includes("MongooseError")) {
-        errorMessage =
-          "Không thể kết nối đến cơ sở dữ liệu. Vui lòng thử lại sau.";
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-
       // Hiển thị lỗi với toast
-      toast.error(errorMessage, {
+      toast.error(error.message || "Đã xảy ra lỗi khi đăng nhập", {
         duration: 4000,
         position: "top-center",
       });

@@ -31,10 +31,10 @@ const FeatureCard = () => {
           className="flex w-11/12 flex-col items-start space-y-4 rounded-xl border p-5 shadow-lg transition hover:drop-shadow-xl"
           key={index}
         >
-          <div className="rounded-lg bg-secondary p-3 drop-shadow-md">
+          <div className="rounded-lg bg-secondary p-3">
             <feature.icon className="h-6 w-6 text-primary" />
           </div>
-          <CardTitle className="text-colors-navy text-2xl">
+          <CardTitle className="text-2xl text-colors-navy">
             {feature.title}
           </CardTitle>
           <CardDescription className="text-base">
