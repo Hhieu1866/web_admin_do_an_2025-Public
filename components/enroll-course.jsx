@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import Link from "next/link";
 
 const EnrollCourse = ({ asLink, courseId, className }) => {
   const router = useRouter();
@@ -92,14 +93,10 @@ const EnrollCourse = ({ asLink, courseId, className }) => {
       setIsEnrolled(true);
       toast.success(data.message || "Đăng ký khóa học thành công!");
 
-      // Đợi một chút trước khi chuyển hướng để người dùng thấy thông báo
-      setTimeout(() => {
-        // Làm mới trang để cập nhật trạng thái
-        router.refresh();
+      // Làm mới trang để cập nhật trạng thái
+      router.refresh();
 
-        // Chuyển hướng đến trang bài học
-        router.push(`/courses/${courseId}/lesson`);
-      }, 1500);
+      // Không tự động chuyển trang sau khi đăng ký thành công
     } catch (error) {
       console.error("Lỗi khi đăng ký khóa học:", error);
       toast.error(error.message || "Có lỗi xảy ra khi đăng ký khóa học");
@@ -108,21 +105,21 @@ const EnrollCourse = ({ asLink, courseId, className }) => {
     }
   };
 
-  // Nếu đã đăng ký, hiển thị nút vào học
+  // Nếu đã đăng ký, hiển thị nút Xem chi tiết giống như trong CourseCard
   if (isEnrolled) {
     return (
-      <Button
-        variant={asLink ? "ghost" : "default"}
-        className={
-          asLink
-            ? "h-7 gap-1 text-xs text-emerald-700"
-            : cn(buttonVariants({ size: "lg" }), className)
-        }
-        onClick={() => router.push(`/courses/${courseId}/lesson`)}
-      >
-        {hasStarted ? "Tiếp tục học" : "Vào học ngay"}
-        <ArrowRight className={asLink ? "w-3" : "ml-2 w-4"} />
-      </Button>
+      <Link href={`/courses/${courseId}`}>
+        <Button
+          size={asLink ? "sm" : "default"}
+          className={
+            asLink
+              ? "flex items-center justify-between"
+              : "flex w-full items-center justify-between"
+          }
+        >
+          <p>Xem chi tiết</p>
+        </Button>
+      </Link>
     );
   }
 

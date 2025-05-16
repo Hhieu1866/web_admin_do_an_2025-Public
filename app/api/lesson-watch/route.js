@@ -140,6 +140,10 @@ export async function GET(request) {
       try {
         await dbConnect();
 
+        console.log(
+          `Đang tìm assessment cho user ${loggedInUser.id} với quizSet ${quizSetId}`,
+        );
+
         // Tìm assessment mới nhất của người dùng cho quizSet này
         const assessment = await Assessment.findOne({
           quizSet: quizSetId,
@@ -149,6 +153,9 @@ export async function GET(request) {
           .lean();
 
         if (assessment) {
+          console.log(
+            `Đã tìm thấy assessment với ID: ${assessment._id} cho user: ${loggedInUser.id}`,
+          );
           return NextResponse.json({
             assessment: {
               score: assessment.score,
@@ -159,6 +166,9 @@ export async function GET(request) {
             },
           });
         } else {
+          console.log(
+            `Không tìm thấy assessment cho user ${loggedInUser.id} với quizSet ${quizSetId}`,
+          );
           return NextResponse.json({
             message: "Không tìm thấy kết quả assessment",
           });

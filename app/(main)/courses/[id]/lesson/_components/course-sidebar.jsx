@@ -28,6 +28,10 @@ export const CourseSidebar = async ({ courseId }) => {
   await dbConnect();
 
   const loggedinUser = await getLoggedInUser();
+  if (!loggedinUser) {
+    console.log("Không tìm thấy thông tin người dùng đăng nhập");
+    return null;
+  }
 
   // Xóa cache báo cáo khi load sidebar để đảm bảo dữ liệu mới nhất
   const reportCacheKey = createCacheKey("report", courseId, loggedinUser.id);
@@ -40,6 +44,16 @@ export const CourseSidebar = async ({ courseId }) => {
     course: courseId,
     student: loggedinUser.id,
   });
+
+  console.log(
+    `Đang lấy báo cáo cho user ${loggedinUser.id}, course: ${courseId}`,
+  );
+
+  if (!report) {
+    console.log(`Không tìm thấy báo cáo cho user ${loggedinUser.id}`);
+  } else {
+    console.log(`Đã tìm thấy báo cáo cho user ${loggedinUser.id}`);
+  }
 
   // Đếm số module đã hoàn thành
   const totalCompletedModules = report?.totalCompletedModeules
@@ -130,11 +144,14 @@ export const CourseSidebar = async ({ courseId }) => {
   const updatedallModules =
     updatedModules.length > 0 ? sanitizeData(updatedModules) : [];
 
+  // Kiểm tra nếu khóa học có bộ câu hỏi quiz
   const quizSetall = course?.quizSet;
+
+  // Kiểm tra xem người dùng đã hoàn thành quiz chưa - chỉ kiểm tra với report của người dùng hiện tại
   const isQuizComplete = report?.quizAssessment ? true : false;
   const quizSet = quizSetall ? sanitizeData(quizSetall) : null;
 
-  // Lấy thông tin đánh giá quiz nếu có
+  // Lấy thông tin đánh giá quiz nếu có - chỉ từ report của người dùng hiện tại
   let assessmentData = null;
   if (report?.quizAssessment) {
     // Chuyển đổi dữ liệu từ report.quizAssessment
@@ -149,8 +166,11 @@ export const CourseSidebar = async ({ courseId }) => {
 
   // Debug thông tin chứng chỉ
   console.log("Debug sidebar data:", {
+    userId: loggedinUser.id,
     totalProgress,
-    reportData: report?.quizAssessment || "Không có dữ liệu quiz",
+    reportData: report?.quizAssessment
+      ? "Có dữ liệu quiz"
+      : "Không có dữ liệu quiz",
     assessmentData,
     isPassed: assessmentData?.isPassed,
   });

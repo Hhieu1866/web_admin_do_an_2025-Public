@@ -7,14 +7,52 @@ import { getCourseDetails } from "./courses";
 
 export async function getReport(filter) {
   try {
+    console.log("getReport được gọi với filter:", JSON.stringify(filter));
+
+    // Đảm bảo bộ lọc hợp lệ
+    if (!filter || !filter.student || !filter.course) {
+      console.log("Thiếu thông tin bắt buộc trong filter của getReport");
+      return null;
+    }
+
+    // Tìm báo cáo với filter đã cho
     const report = await Report.findOne(filter)
       .populate({
         path: "quizAssessment",
         model: Assessment,
       })
       .lean();
+
+    if (!report) {
+      console.log(
+        `Không tìm thấy báo cáo cho học viên ${filter.student} và khóa học ${filter.course}`,
+      );
+      return null;
+    }
+
+    console.log(`Đã tìm thấy báo cáo với ID: ${report._id}`);
+
+    // Kiểm tra nếu báo cáo có quizAssessment, đảm bảo nó thuộc về người dùng hiện tại
+    if (report.quizAssessment) {
+      const assessment = await Assessment.findOne({
+        _id: report.quizAssessment,
+        user: filter.student,
+      }).lean();
+
+      if (!assessment) {
+        console.log(
+          `Assessment ${report.quizAssessment} không thuộc về người dùng ${filter.student}. Đang xóa liên kết.`,
+        );
+        // Trả về báo cáo nhưng loại bỏ liên kết với quizAssessment không thuộc về người dùng
+        const reportWithoutAssessment = { ...report };
+        delete reportWithoutAssessment.quizAssessment;
+        return replaceMongoIdInObject(reportWithoutAssessment);
+      }
+    }
+
     return replaceMongoIdInObject(report);
   } catch (error) {
+    console.error("Lỗi trong hàm getReport:", error);
     throw new Error(error);
   }
 }

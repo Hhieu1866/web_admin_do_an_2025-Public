@@ -55,34 +55,12 @@ const Quiz = ({ courseId, quizSet, isTaken, assessmentData }) => {
         if (response.assessment) {
           console.log("Cập nhật quizResults với:", response.assessment);
           setQuizResults(response.assessment);
-
-          // Lưu kết quả vào localStorage để dự phòng
-          if (response.assessment.isPassed) {
-            try {
-              const storageKey = `quiz_${quizSet._id.toString()}_${courseId}`;
-              localStorage.setItem(
-                storageKey,
-                JSON.stringify(response.assessment),
-              );
-            } catch (err) {
-              console.error("Không thể lưu vào localStorage:", err);
-            }
-          }
         } else {
-          console.log("Không tìm thấy dữ liệu assessment");
-
-          // Thử lấy từ localStorage nếu có
-          try {
-            const storageKey = `quiz_${quizSet._id.toString()}_${courseId}`;
-            const savedData = localStorage.getItem(storageKey);
-            if (savedData) {
-              const parsedData = JSON.parse(savedData);
-              console.log("Lấy dữ liệu từ localStorage:", parsedData);
-              setQuizResults(parsedData);
-            }
-          } catch (err) {
-            console.error("Lỗi khi đọc localStorage:", err);
-          }
+          console.log(
+            "Không tìm thấy dữ liệu assessment cho người dùng hiện tại",
+          );
+          // Không cần lấy từ localStorage vì có thể gây xung đột dữ liệu giữa các user
+          setQuizResults(null);
         }
       } catch (error) {
         console.error("Lỗi khi lấy kết quả bài kiểm tra:", error);
@@ -92,42 +70,16 @@ const Quiz = ({ courseId, quizSet, isTaken, assessmentData }) => {
           status: error.response?.status,
         });
 
-        // Thử lấy từ localStorage nếu có lỗi
-        try {
-          const storageKey = `quiz_${quizSet._id.toString()}_${courseId}`;
-          const savedData = localStorage.getItem(storageKey);
-          if (savedData) {
-            const parsedData = JSON.parse(savedData);
-            console.log("Lấy dữ liệu từ localStorage sau lỗi API:", parsedData);
-            setQuizResults(parsedData);
-          }
-        } catch (err) {
-          console.error("Lỗi khi đọc localStorage:", err);
-        }
+        // Không sử dụng dữ liệu từ localStorage nữa
+        setQuizResults(null);
       }
     };
 
     // Luôn gọi API để lấy kết quả bài kiểm tra, không phụ thuộc vào assessmentData
     fetchAssessmentData();
 
-    // Tạo kênh giao tiếp giữa các cửa sổ để đồng bộ kết quả
-    const handleStorageChange = (e) => {
-      const storageKey = `quiz_${quizSet._id.toString()}_${courseId}`;
-      if (e.key === storageKey && e.newValue) {
-        try {
-          const newData = JSON.parse(e.newValue);
-          setQuizResults(newData);
-        } catch (err) {
-          console.error("Lỗi khi xử lý sự kiện storage:", err);
-        }
-      }
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-    };
+    // Không còn cần lắng nghe sự kiện storage nữa vì không sử dụng localStorage
+    return () => {};
   }, [courseId, quizSet._id, assessmentData]);
 
   // Kiểm tra thời gian còn lại nếu chưa đạt và đã làm bài
@@ -190,19 +142,6 @@ const Quiz = ({ courseId, quizSet, isTaken, assessmentData }) => {
       // Lưu kết quả để hiển thị
       if (response.assessment) {
         setQuizResults(response.assessment);
-
-        // Lưu kết quả vào localStorage nếu đã pass
-        if (response.assessment.isPassed) {
-          try {
-            const storageKey = `quiz_${quizSet._id.toString()}_${courseId}`;
-            localStorage.setItem(
-              storageKey,
-              JSON.stringify(response.assessment),
-            );
-          } catch (err) {
-            console.error("Không thể lưu vào localStorage:", err);
-          }
-        }
       }
 
       // Làm mới trang để cập nhật sidebar
