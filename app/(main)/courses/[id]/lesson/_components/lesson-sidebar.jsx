@@ -1,3 +1,5 @@
+"use client";
+
 import { CourseProgress } from "@/components/course-progress";
 import {
   Accordion,
@@ -16,25 +18,13 @@ import {
   HelpCircle,
 } from "lucide-react";
 import Link from "next/link";
-import { getCourseDetails } from "@/queries/courses";
-import { getLoggedInUser } from "@/lib/loggedin-user";
-import { Watch } from "@/model/watch-model";
-import { ObjectId } from "mongoose";
-import { getReport } from "@/queries/reports";
 import { GiveReview } from "./give-review";
 import { DownloadCertificate } from "./download-certificate";
 import Quiz from "./quiz";
 import { LessonSidebarLink } from "./lesson-sidebar-link";
 
-export const LessonSidebar = async ({ courseId }) => {
-  const course = await getCourseDetails(courseId);
-  const loggedinUser = await getLoggedInUser();
-
-  const report = await getReport({
-    course: courseId,
-    student: loggedinUser.id,
-  });
-
+export const LessonSidebar = ({ course, report, userId }) => {
+  // Tính toán lại các giá trị dựa trên props
   const totalCompletedModules = report?.totalCompletedModeules
     ? report?.totalCompletedModeules.length
     : 0;
@@ -56,64 +46,14 @@ export const LessonSidebar = async ({ courseId }) => {
   if (totalLessons > 0 && totalCompletedLessons >= 0) {
     totalProgress = (totalCompletedLessons / totalLessons) * 100;
   }
-
   totalProgress = Math.max(0, Math.min(100, totalProgress));
 
-  // Sanitize fucntion for handle ObjectID and Buffer
-  function sanitizeData(data) {
-    if (!data) return null;
-
-    return JSON.parse(
-      JSON.stringify(data, (key, value) => {
-        if (value instanceof ObjectId) {
-          return value.toString();
-        }
-        if (Buffer.isBuffer(value)) {
-          return value.toString("base64");
-        }
-        return value;
-      }),
-    );
-  }
-
-  let updatedModules = [];
-
-  if (course?.modules && Array.isArray(course.modules)) {
-    updatedModules = await Promise.all(
-      course.modules.map(async (module) => {
-        const moduleId = module._id.toString();
-        const lessons = module?.lessonIds;
-
-        if (lessons && Array.isArray(lessons)) {
-          const updatedLessons = await Promise.all(
-            lessons.map(async (lesson) => {
-              const lessonId = lesson._id.toString();
-              const watch = await Watch.findOne({
-                lesson: lessonId,
-                module: moduleId,
-                user: loggedinUser.id,
-              }).lean();
-              if (watch?.state === "completed") {
-                lesson.state = "completed";
-              } else if (watch?.state === "started") {
-                lesson.state = "started";
-              }
-              return lesson;
-            }),
-          );
-        }
-
-        return module;
-      }),
-    );
-  }
-
-  const updatedallModules =
-    updatedModules.length > 0 ? sanitizeData(updatedModules) : [];
+  // Không fetch lại, chỉ dùng dữ liệu từ props
+  const updatedallModules = course?.modules || [];
 
   const quizSetall = course?.quizSet;
   const isQuizComplete = report?.quizAssessment ? true : false;
-  const quizSet = quizSetall ? sanitizeData(quizSetall) : null;
+  const quizSet = quizSetall || null;
 
   return (
     <div className="flex h-full flex-col">
@@ -156,7 +96,7 @@ export const LessonSidebar = async ({ courseId }) => {
                         const status = lesson.state;
                         const isCompleted = status === "completed";
                         const isStarted = status === "started";
-                        const lessonUrl = `/courses/${courseId}/lesson?name=${lesson.slug}&module=${module.slug}`;
+                        const lessonUrl = `/courses/${course._id}/lesson?name=${lesson.slug}&module=${module.slug}`;
 
                         return (
                           <LessonSidebarLink
@@ -190,7 +130,7 @@ export const LessonSidebar = async ({ courseId }) => {
               </div>
               <div className="">
                 <Quiz
-                  courseId={courseId}
+                  courseId={course._id}
                   quizSet={quizSet}
                   isTaken={isQuizComplete}
                 />
@@ -200,13 +140,13 @@ export const LessonSidebar = async ({ courseId }) => {
 
           {/* Review Button */}
           <div className="mb-3">
-            <GiveReview courseId={courseId} loginid={loggedinUser.id} />
+            <GiveReview courseId={course._id} loginid={userId} />
           </div>
 
           {/* Certificate Button */}
           <div>
             <DownloadCertificate
-              courseId={courseId}
+              courseId={course._id}
               totalProgress={totalProgress}
             />
           </div>

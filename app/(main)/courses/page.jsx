@@ -121,3 +121,5 @@ const CoursesPage = async ({ searchParams }) => {
 };
 
 export default CoursesPage;
+
+export const dynamic = "force-dynamic";
