@@ -7,7 +7,6 @@ import { getCategories } from "@/queries/categories";
 import CourseCard from "./_components/CourseCard";
 import { Suspense } from "react";
 import { Loader2 } from "lucide-react";
-import CourseLoadingOverlay from "./_components/CourseLoadingOverlay";
 
 // Loading component cho phần danh sách khóa học (chỉ hiển thị spinner)
 const CourseListLoading = () => (
@@ -79,7 +78,6 @@ const CoursesPage = async ({ searchParams }) => {
               <div className="relative lg:col-span-3">
                 {courses.length > 0 ? (
                   <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
-                    <CourseLoadingOverlay />
                     {courses.map((course) => {
                       return <CourseCard key={course.id} course={course} />;
                     })}
