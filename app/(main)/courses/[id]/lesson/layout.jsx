@@ -8,14 +8,10 @@ import { LessonSidebarMobile } from "./_components/lesson-sidebar-mobile";
 const LessonLayout = async ({ children, params }) => {
   const id = params.id;
   const loggedinUser = await getLoggedInUser();
-  if (!loggedinUser) {
-    redirect("/login");
-  }
+  if (!loggedinUser) redirect("/login");
 
   const isEnrolled = await hasEnrollmentForCourse(id, loggedinUser.id);
-  if (!isEnrolled) {
-    redirect("/courses");
-  }
+  if (!isEnrolled) redirect("/courses");
 
   return (
     <div className="flex h-screen flex-col">

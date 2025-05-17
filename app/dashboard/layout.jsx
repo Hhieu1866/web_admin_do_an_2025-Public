@@ -6,29 +6,20 @@ import { redirect } from "next/navigation";
 
 const DashboardLayout = async ({ children }) => {
   const session = await auth();
+  if (!session?.user) redirect("/login");
 
-  // Kiểm tra người dùng đã đăng nhập
-  if (!session?.user) {
-    redirect("/login");
-  }
-
-  // Lấy thông tin người dùng
   const user = await getUserByEmail(session.user.email);
-
-  // Kiểm tra quyền instructor
-  if (user?.role !== "instructor") {
-    redirect("/"); // Nếu không phải instructor, chuyển hướng về trang chủ
-  }
+  if (user?.role !== "instructor") redirect("/");
 
   return (
     <div className="h-full">
-      <div className="h-[80px] lg:pl-56 fixed inset-y-0 w-full z-50">
+      <div className="fixed inset-y-0 z-50 h-[80px] w-full lg:pl-56">
         <Navbar />
       </div>
-      <div className="hidden lg:flex h-full w-56 flex-col fixed inset-y-0 z-50">
+      <div className="fixed inset-y-0 z-50 hidden h-full w-56 flex-col lg:flex">
         <Sidebar />
       </div>
-      <main className="lg:pl-56 pt-[80px] h-full">{children}</main>
+      <main className="h-full pt-[80px] lg:pl-56">{children}</main>
     </div>
   );
 };

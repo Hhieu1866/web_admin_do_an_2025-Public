@@ -2,16 +2,22 @@ import { NextResponse } from "next/server";
 import { Category } from "@/model/category-model";
 import { dbConnect } from "@/service/mongo";
 import { revalidatePath } from "next/cache";
+import { getCategories } from "@/queries/categories";
 
-export async function GET() {
+export async function GET(request) {
   try {
+    // Kết nối đến database
     await dbConnect();
-    const categories = await Category.find().lean();
+
+    // Lấy danh sách categories từ cơ sở dữ liệu
+    const categories = await getCategories();
+
+    // Trả về danh sách categories dưới dạng JSON
     return NextResponse.json(categories);
   } catch (error) {
-    console.error("Error fetching categories:", error);
+    console.error("Lỗi khi lấy danh sách categories:", error);
     return NextResponse.json(
-      { error: error.message || "Lỗi khi lấy danh sách danh mục" },
+      { message: "Đã xảy ra lỗi khi lấy danh sách categories" },
       { status: 500 },
     );
   }

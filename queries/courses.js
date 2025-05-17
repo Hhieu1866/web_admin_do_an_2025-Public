@@ -15,36 +15,69 @@ import { Quiz } from "@/model/quizzes-model";
 import mongoose from "mongoose";
 import { Enrollment } from "@/model/enrollment-model";
 
-export async function getCourseList() {
-  const courses = await Course.find({ active: true })
-    .select([
-      "title",
-      "subtitle",
-      "thumbnail",
-      "thumbnailUrl",
-      "modules",
-      "price",
-      "category",
-      "instructor",
-    ])
-    .populate({
-      path: "category",
-      model: Category,
-    })
-    .populate({
-      path: "instructor",
-      model: User,
-    })
-    .populate({
-      path: "testimonials",
-      model: Testimonial,
-    })
-    .populate({
-      path: "modules",
-      model: Module,
-    })
-    .lean();
-  return replaceMongoIdInArray(courses);
+export async function getCourseList(filters = {}) {
+  try {
+    // Xây dựng query filter
+    const query = { active: true };
+
+    // Lọc theo danh mục
+    if (filters.categories && filters.categories.length > 0) {
+      // Chuyển đổi các ID thành ObjectId nếu cần
+      const categoryIds = filters.categories.map((id) =>
+        mongoose.Types.ObjectId.isValid(id)
+          ? new mongoose.Types.ObjectId(id)
+          : id,
+      );
+      query.category = { $in: categoryIds };
+    }
+
+    // Lọc theo giá tiền
+    if (filters.price && filters.price.length > 0) {
+      if (filters.price.includes("free") && !filters.price.includes("paid")) {
+        query.price = 0;
+      } else if (
+        !filters.price.includes("free") &&
+        filters.price.includes("paid")
+      ) {
+        query.price = { $gt: 0 };
+      }
+      // Nếu cả hai hoặc không có cái nào được chọn, không cần thêm filter
+    }
+
+    const courses = await Course.find(query)
+      .select([
+        "title",
+        "subtitle",
+        "thumbnail",
+        "thumbnailUrl",
+        "modules",
+        "price",
+        "category",
+        "instructor",
+      ])
+      .populate({
+        path: "category",
+        model: Category,
+      })
+      .populate({
+        path: "instructor",
+        model: User,
+      })
+      .populate({
+        path: "testimonials",
+        model: Testimonial,
+      })
+      .populate({
+        path: "modules",
+        model: Module,
+      })
+      .lean();
+
+    return replaceMongoIdInArray(courses);
+  } catch (error) {
+    console.error("Lỗi khi lấy danh sách khóa học:", error);
+    return [];
+  }
 }
 
 export async function getCourseDetails(id) {

@@ -21,200 +21,168 @@ import { Watch } from "@/model/watch-model";
 import { ObjectId } from "mongoose";
 import { getReport } from "@/queries/reports";
 import Quiz from "./quiz";
-import { createCacheKey, deleteCache } from "@/lib/cache";
 import { dbConnect } from "@/service/mongo";
+import { RequireRole } from "./require-role";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
-export const CourseSidebar = async ({ courseId }) => {
+export const CourseSidebar = async ({ courseId, children }) => {
+  const loggedInUser = await getLoggedInUser();
+  if (!loggedInUser) return;
+
   await dbConnect();
-
-  const loggedinUser = await getLoggedInUser();
-  if (!loggedinUser) {
-    console.log("Không tìm thấy thông tin người dùng đăng nhập");
-    return null;
-  }
-
-  // Xóa cache báo cáo khi load sidebar để đảm bảo dữ liệu mới nhất
-  const reportCacheKey = createCacheKey("report", courseId, loggedinUser.id);
-  deleteCache(reportCacheKey);
-
   const course = await getCourseDetails(courseId);
+  if (!course) return null;
 
-  // Lấy báo cáo tiến trình của người dùng
-  const report = await getReport({
+  // Kiểm tra xem user có phải là enrolled user không
+  const filter = {
     course: courseId,
-    student: loggedinUser.id,
-  });
+    student: loggedInUser._id,
+  };
 
-  console.log(
-    `Đang lấy báo cáo cho user ${loggedinUser.id}, course: ${courseId}`,
-  );
+  // Lấy báo cáo kết quả học tập của user hiện tại
+  const report = await getReport(filter);
 
-  if (!report) {
-    console.log(`Không tìm thấy báo cáo cho user ${loggedinUser.id}`);
-  } else {
-    console.log(`Đã tìm thấy báo cáo cho user ${loggedinUser.id}`);
-  }
+  // Không bắt buộc phải có kết quả quiz
+  const quizAssessment = report?.quizAssessment;
 
-  // Đếm số module đã hoàn thành
-  const totalCompletedModules = report?.totalCompletedModeules
-    ? report?.totalCompletedModeules.length
-    : 0;
+  const modules = course?.modules;
 
-  // Đếm tổng số module trong khóa học
-  const totalModules = course?.modules ? course.modules.length : 0;
+  // Tính tỷ lệ hoàn thành khóa học
+  const calculateCourseCompletion = (report) => {
+    if (!report?.completedLessons || !course?.totalLessons)
+      return { value: 0, lesson: 0 };
 
-  // Đếm tổng số bài học trong tất cả các module
-  let totalLessons = 0;
-
-  // Đếm số bài học đã hoàn thành
-  let totalCompletedLessons = report?.totalCompletedLessons?.length || 0;
-
-  if (course?.modules && Array.isArray(course.modules)) {
-    course.modules.forEach((module) => {
-      if (module.lessonIds && Array.isArray(module.lessonIds)) {
-        totalLessons += module.lessonIds.length;
-      }
-    });
-  }
-
-  // Tính tiến trình khóa học dựa trên số bài học đã hoàn thành
-  let totalProgress = 0;
-
-  if (totalLessons > 0 && totalCompletedLessons > 0) {
-    totalProgress = (totalCompletedLessons / totalLessons) * 100;
-  }
-  // Nếu không có bài học nào hoàn thành, tính tiến trình dựa trên module
-  else if (totalModules > 0 && totalCompletedModules > 0) {
-    totalProgress = (totalCompletedModules / totalModules) * 100;
-  }
-
-  // Giới hạn tiến trình từ 0-100%
-  totalProgress = Math.max(0, Math.min(100, Math.floor(totalProgress)));
-
-  // Sanitize function cho ObjectID và Buffer
-  function sanitizeData(data) {
-    if (!data) return null;
-
-    return JSON.parse(
-      JSON.stringify(data, (key, value) => {
-        if (value instanceof ObjectId) {
-          return value.toString();
-        }
-        if (Buffer.isBuffer(value)) {
-          return value.toString("base64");
-        }
-        return value;
-      }),
+    const percent = Math.round(
+      (report.completedLessons.length / course.totalLessons) * 100,
     );
-  }
 
-  let updatedModules = [];
+    const numCompletedLessons = report.completedLessons.length;
 
-  if (course?.modules && Array.isArray(course.modules)) {
-    updatedModules = await Promise.all(
-      course.modules.map(async (module) => {
-        const moduleId = module._id.toString();
-        const lessons = module?.lessonIds;
+    return { value: percent, lesson: numCompletedLessons };
+  };
 
-        if (lessons && Array.isArray(lessons)) {
-          const updatedLessons = await Promise.all(
-            lessons.map(async (lesson) => {
-              const lessonId = lesson._id.toString();
-              const watch = await Watch.findOne({
-                lesson: lessonId,
-                module: moduleId,
-                user: loggedinUser.id,
-              }).lean();
-
-              if (watch?.state === "completed") {
-                lesson.state = "completed";
-              } else if (watch?.state === "started") {
-                lesson.state = "started";
-              }
-              return lesson;
-            }),
-          );
-        }
-
-        return module;
-      }),
-    );
-  }
-
-  const updatedallModules =
-    updatedModules.length > 0 ? sanitizeData(updatedModules) : [];
-
-  // Kiểm tra nếu khóa học có bộ câu hỏi quiz
-  const quizSetall = course?.quizSet;
-
-  // Kiểm tra xem người dùng đã hoàn thành quiz chưa - chỉ kiểm tra với report của người dùng hiện tại
-  const isQuizComplete = report?.quizAssessment ? true : false;
-  const quizSet = quizSetall ? sanitizeData(quizSetall) : null;
-
-  // Lấy thông tin đánh giá quiz nếu có - chỉ từ report của người dùng hiện tại
-  let assessmentData = null;
-  if (report?.quizAssessment) {
-    // Chuyển đổi dữ liệu từ report.quizAssessment
-    assessmentData = {
-      score: report.quizAssessment.score || 0,
-      totalQuestions: report.quizAssessment.totalQuestions || 0,
-      percentage: report.quizAssessment.percentage || 0,
-      isPassed: report.quizAssessment.isPassed || false,
-      nextAttemptAllowed: report.quizAssessment.nextAttemptAllowed || null,
-    };
-  }
-
-  // Debug thông tin chứng chỉ
-  console.log("Debug sidebar data:", {
-    userId: loggedinUser.id,
-    totalProgress,
-    reportData: report?.quizAssessment
-      ? "Có dữ liệu quiz"
-      : "Không có dữ liệu quiz",
-    assessmentData,
-    isPassed: assessmentData?.isPassed,
-  });
+  const { value, lesson } = calculateCourseCompletion(report);
 
   return (
-    <>
-      <div className="flex h-full flex-col overflow-y-auto border-r shadow-sm">
-        <div className="flex flex-col border-b p-8">
-          <h1 className="font-semibold">{course?.title}</h1>
-          {/* Check purchase */}
-          {
-            <div className="mt-10">
-              <CourseProgress variant="success" value={totalProgress} />
-              {totalLessons > 0 && (
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {totalCompletedLessons}/{totalLessons} bài học đã hoàn thành
-                </p>
-              )}
-            </div>
-          }
+    <div className="flex h-full flex-1 flex-col overflow-y-auto bg-white shadow-sm">
+      <div className="flex flex-col">
+        <div className="flex flex-col p-8">
+          <h2 className="line-clamp-2 text-xl font-bold">{course.title}</h2>
         </div>
-
-        <SidebarModules courseId={courseId} modules={updatedallModules} />
-
-        <div className="w-full border-t px-4 pt-10 lg:px-14">
-          {quizSet && (
-            <Quiz
-              courseId={courseId}
-              quizSet={quizSet}
-              isTaken={isQuizComplete}
-              assessmentData={assessmentData}
-            />
-          )}
-        </div>
-
-        <div className="mb-10 w-full px-6">
-          <GiveReview courseId={courseId} loginid={loggedinUser.id} />
-          <DownloadCertificate
+        <div className="px-8">
+          <CourseProgressClient
             courseId={courseId}
-            totalProgress={totalProgress}
-            quizPassed={assessmentData?.isPassed}
+            initialValue={value}
+            totalLessons={course.totalLessons}
+            completedLessons={lesson}
           />
         </div>
+        {children}
+        <div className="flex flex-col px-6 py-4">
+          <RequireRole role="student">
+            {value === 100 && (
+              <>
+                <DownloadCertificate />
+                <div className="mb-4"></div>
+                <GiveReview />
+                <div className="mb-4"></div>
+              </>
+            )}
+
+            <div className="mb-4 font-medium"></div>
+            <ReviewModal courseId={courseId} />
+            <div className="mb-4"></div>
+          </RequireRole>
+        </div>
       </div>
-    </>
+      <div className="flex flex-1 flex-col">
+        <SidebarModules courseId={courseId} modules={modules} />
+      </div>
+    </div>
+  );
+};
+
+// Component client cho CourseProgress để cập nhật theo thời gian thực
+("use client");
+export const CourseProgressClient = ({
+  courseId,
+  initialValue,
+  totalLessons,
+  completedLessons,
+}) => {
+  const [progress, setProgress] = useState({
+    value: initialValue,
+    completedCount: completedLessons,
+  });
+  const router = useRouter();
+
+  // Lắng nghe sự kiện lessonCompleted một cách trực tiếp
+  useEffect(() => {
+    const handleLessonCompleted = (event) => {
+      // Kiểm tra xem sự kiện có thuộc về khóa học hiện tại không
+      if (event.detail?.courseId === courseId) {
+        console.log("Đã nhận sự kiện hoàn thành bài học:", event.detail);
+
+        // Tính toán giá trị tiến trình mới
+        const newCount = progress.completedCount + 1;
+        const newValue = Math.min(
+          Math.round((newCount / totalLessons) * 100),
+          100,
+        );
+
+        // Cập nhật state
+        setProgress({
+          value: newValue,
+          completedCount: newCount,
+        });
+
+        console.log(
+          `Tiến trình cập nhật: ${newCount}/${totalLessons} bài học (${newValue}%)`,
+        );
+
+        // Refresh dữ liệu từ server
+        router.refresh();
+      }
+    };
+
+    // Đăng ký lắng nghe trên window để đảm bảo nhận được sự kiện
+    window.addEventListener("lessonCompleted", handleLessonCompleted);
+
+    return () => {
+      window.removeEventListener("lessonCompleted", handleLessonCompleted);
+    };
+  }, [courseId, progress.completedCount, router, totalLessons]);
+
+  // Cập nhật khi props từ server thay đổi
+  useEffect(() => {
+    if (completedLessons > progress.completedCount) {
+      const newValue = Math.min(
+        Math.round((completedLessons / totalLessons) * 100),
+        100,
+      );
+
+      setProgress({
+        value: newValue,
+        completedCount: completedLessons,
+      });
+
+      console.log(
+        `Cập nhật từ server: ${completedLessons}/${totalLessons} bài học (${newValue}%)`,
+      );
+    }
+  }, [completedLessons, progress.completedCount, totalLessons]);
+
+  return (
+    <div>
+      <CourseProgress
+        value={progress.value}
+        courseId={courseId}
+        variant={progress.value === 100 ? "success" : "default"}
+      />
+      <div className="mt-2 text-sm text-muted-foreground">
+        {progress.completedCount}/{totalLessons} bài học đã hoàn thành
+      </div>
+    </div>
   );
 };

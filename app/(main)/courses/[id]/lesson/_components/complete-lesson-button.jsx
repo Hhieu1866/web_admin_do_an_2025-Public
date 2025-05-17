@@ -14,6 +14,26 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import axiosInstance from "@/lib/axios";
 
+// Tạo custom event để thông báo khi hoàn thành bài học
+const createLessonCompletedEvent = (courseId, lessonId, moduleSlug) => {
+  console.log("Phát sự kiện lessonCompleted cho khóa học:", courseId);
+
+  // Tạo sự kiện với chi tiết tối thiểu và cần thiết
+  const event = new CustomEvent("lessonCompleted", {
+    detail: {
+      courseId,
+      lessonId,
+      moduleSlug,
+      timestamp: Date.now(),
+    },
+    bubbles: true,
+  });
+
+  // Dispatch sự kiện vào window object để có thể bắt được ở mọi nơi
+  window.dispatchEvent(event);
+  console.log("Đã phát ra sự kiện lessonCompleted thành công");
+};
+
 export const CompleteLessonButton = ({
   courseId,
   lessonId,
@@ -58,11 +78,11 @@ export const CompleteLessonButton = ({
       return;
     }
 
-    // Bắt đầu animation xử lý trước khi thay đổi trạng thái
+    // Bắt đầu animation xử lý
     setProcessing(true);
 
     try {
-      // Sử dụng axios thay vì fetch
+      // Gọi API đánh dấu bài học hoàn thành
       await axiosInstance.post("/api/lesson-watch", {
         courseId,
         lessonId,
@@ -75,21 +95,16 @@ export const CompleteLessonButton = ({
       // Thông báo thành công
       toast.success("Bài học đã được đánh dấu hoàn thành!");
 
-      // Thực hiện các revalidation song song để tăng tốc độ
-      const revalidationPromises = [
-        router.refresh(),
-        axiosInstance.get(`/api/revalidate?path=/courses/${courseId}`),
-        axiosInstance.get(`/api/revalidate?path=/courses/${courseId}/details`),
-        axiosInstance.get(`/api/revalidate?path=/dashboard`),
-      ];
+      // Phát ra sự kiện báo hiệu hoàn thành bài học - ĐÂY LÀ BƯỚC QUAN TRỌNG
+      createLessonCompletedEvent(courseId, lessonId, moduleSlug);
 
-      // Đợi tất cả revalidation hoàn thành
-      await Promise.allSettled(revalidationPromises);
+      // Thực hiện refresh và revalidate
+      router.refresh();
 
       // Đã hoàn tất xử lý, cập nhật UI
       setCompleted(true);
     } catch (error) {
-      console.error("Error completing lesson:", error);
+      console.error("Lỗi khi đánh dấu hoàn thành bài học:", error);
       toast.error("Có lỗi xảy ra khi đánh dấu hoàn thành bài học");
     } finally {
       setProcessing(false); // Kết thúc xử lý
@@ -103,7 +118,9 @@ export const CompleteLessonButton = ({
         <Button
           onClick={handleCompleteLesson}
           disabled={loading || processing}
-          className={`relative gap-2 overflow-hidden bg-primary text-white transition-all duration-300 sm:w-auto ${processing ? "animate-shimmer" : ""}`}
+          className={`relative gap-2 overflow-hidden bg-primary text-white transition-all duration-300 sm:w-auto ${
+            processing ? "animate-shimmer" : ""
+          }`}
           size="lg"
         >
           {processing ? (
@@ -139,7 +156,9 @@ export const CompleteLessonButton = ({
           className="animate-fadeIn gap-1 bg-primary text-white transition-all duration-300"
         >
           <Link
-            href={`${nextLessonUrl}${nextLessonUrl.includes("?") ? "&" : "?"}fromComplete=true`}
+            href={`${nextLessonUrl}${
+              nextLessonUrl.includes("?") ? "&" : "?"
+            }fromComplete=true`}
             className="bg-primary text-white"
           >
             Bài tiếp theo <ChevronRight className="h-4 w-4" />

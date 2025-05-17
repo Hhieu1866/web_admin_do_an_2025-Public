@@ -13,9 +13,7 @@ import { redirect } from "next/navigation";
 
 async function Layout({ tabs }) {
   const session = await auth();
-  if (!session?.user) {
-    redirect("/login");
-  }
+  if (!session?.user) redirect("/login");
 
   const loggedInUser = await getUserByEmail(session?.user?.email);
 

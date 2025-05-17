@@ -53,10 +53,7 @@ export const LessonSidebar = async ({ courseId }) => {
   }
 
   let totalProgress = 0;
-
-  if (totalModules > 0 && totalCompletedModules > 0) {
-    totalProgress = (totalCompletedModules / totalModules) * 100;
-  } else if (totalLessons > 0 && totalCompletedLessons > 0) {
+  if (totalLessons > 0 && totalCompletedLessons >= 0) {
     totalProgress = (totalCompletedLessons / totalLessons) * 100;
   }
 

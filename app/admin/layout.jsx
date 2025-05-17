@@ -5,19 +5,10 @@ import { AdminSidebarWrapper } from "./_components/client-sidebar-wrapper";
 
 export default async function AdminLayout({ children }) {
   const session = await auth();
+  if (!session?.user) redirect("/login");
 
-  // Kiểm tra người dùng đã đăng nhập
-  if (!session?.user) {
-    redirect("/login");
-  }
-
-  // Lấy thông tin người dùng
   const user = await getUserByEmail(session.user.email);
-
-  // Kiểm tra quyền admin
-  if (user?.role !== "admin") {
-    redirect("/"); // Nếu không phải admin, chuyển hướng về trang chủ
-  }
+  if (user?.role !== "admin") redirect("/");
 
   return (
     <>

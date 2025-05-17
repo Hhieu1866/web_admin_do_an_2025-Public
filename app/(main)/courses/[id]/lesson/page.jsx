@@ -22,9 +22,7 @@ const LessonPage = async ({ params, searchParams }) => {
 
   // Lấy thông tin người dùng đăng nhập
   const loggedinUser = await getLoggedInUser();
-  if (!loggedinUser) {
-    return redirect("/login");
-  }
+  if (!loggedinUser) redirect("/login");
 
   // Xóa cache báo cáo khi load trang bài học mới để đảm bảo dữ liệu mới nhất
   const reportCacheKey = createCacheKey("report", id, loggedinUser.id);
