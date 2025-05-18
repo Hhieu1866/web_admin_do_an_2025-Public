@@ -7,6 +7,11 @@ import { getCategories } from "@/queries/categories";
 import CourseCard from "./_components/CourseCard";
 import { Suspense } from "react";
 import { Loader2 } from "lucide-react";
+import CourseLoadingOverlay from "./_components/CourseLoadingOverlay";
+import ErrorComponent from "./_components/ErrorComponent";
+
+// Đặt chế độ dynamic cho route này để tránh lỗi khi sử dụng searchParams
+export const dynamic = "force-dynamic";
 
 // Loading component cho phần danh sách khóa học (chỉ hiển thị spinner)
 const CourseListLoading = () => (
@@ -78,6 +83,7 @@ const CoursesPage = async ({ searchParams }) => {
               <div className="relative lg:col-span-3">
                 {courses.length > 0 ? (
                   <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
+                    <CourseLoadingOverlay />
                     {courses.map((course) => {
                       return <CourseCard key={course.id} course={course} />;
                     })}
@@ -97,27 +103,8 @@ const CoursesPage = async ({ searchParams }) => {
     );
   } catch (error) {
     console.error("Lỗi khi tải trang khóa học:", error);
-    return (
-      <section className="container py-20 text-center">
-        <h2 className="mb-4 text-2xl font-semibold text-gray-800">
-          Đã xảy ra lỗi
-        </h2>
-        <p className="mb-8 text-gray-600">
-          Không thể tải danh sách khóa học. Vui lòng thử lại sau.
-        </p>
-        <div className="flex justify-center">
-          <button
-            onClick={() => window.location.reload()}
-            className="rounded-md bg-primary px-4 py-2 text-white transition-colors hover:bg-primary/90"
-          >
-            Tải lại trang
-          </button>
-        </div>
-      </section>
-    );
+    return <ErrorComponent />;
   }
 };
 
 export default CoursesPage;
-
-export const dynamic = "force-dynamic";
